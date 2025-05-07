@@ -41,7 +41,7 @@
                     <!-- Nav Start -->
                     <div class="classynav">
                         <ul>
-                            <li><a href="#">Shop</a>
+                            <li><a href="#">Shops</a>
                                 <div class="megamenu">
                                     <ul class="single-mega cn-col-4">
                                         <li class="title">Women's Collection</li>
