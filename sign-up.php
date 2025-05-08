@@ -32,15 +32,30 @@
 
 require __DIR__ . "/vendor/autoload.php";
 
-$client = new Google\Client;
+// $client = new Google\Client;
 
+// $client->setClientId("195730534849-kr4fp84dqijnsctm7dgc8eji9aq3hk6h.apps.googleusercontent.com");
+// $client->setClientSecret("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");
+// $client->setRedirectUri("http://pcaxtca.shop/redirect.php");
+// $client->addScope("email");
+// $client->addScope("profile");
+
+// $url = $client->createAuthUrl();
+
+
+$client = new Google\Client;
 $client->setClientId("195730534849-kr4fp84dqijnsctm7dgc8eji9aq3hk6h.apps.googleusercontent.com");
 $client->setClientSecret("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");
 $client->setRedirectUri("http://pcaxtca.shop/redirect.php");
 $client->addScope("email");
 $client->addScope("profile");
 
-$url = $client->createAuthUrl();
+$client->setState('signup'); // or 'signin'
+$signup_url = $client->createAuthUrl();
+
+
+
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -64,7 +79,7 @@ $url = $client->createAuthUrl();
   <link id="pagestyle" href="assets/css/soft-ui-dashboard.css?v=1.1.0" rel="stylesheet" />
   <!-- Nepcha Analytics (nepcha.com) -->
   <!-- Nepcha is a easy-to-use web analytics. No cookies and fully compliant with GDPR, CCPA and PECR. -->
-  <script defer data-site="YOUR_DOMAIN_HERE" src="https://api.nepcha.com/js/nepcha-analytics.js"></script>
+  <!-- <script defer data-site="YOUR_DOMAIN_HERE" src="https://api.nepcha.com/js/nepcha-analytics.js"></script> -->
 </head>
 
 <body class="">
@@ -141,10 +156,21 @@ $url = $client->createAuthUrl();
                 <h5>Register with</h5>
               </div>
 
+
+
+
+              <?php if (isset($_GET['registered_already']) && $_GET['registered_already'] == 1): ?>
+                <div id="alert" class="alert alert-danger mx-4 text-center" role="alert" style="background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 5px;">
+                  <strong>Error!</strong> Email is already registered.
+                </div>
+              <?php endif; ?>
+
+
+
               <div class="row px-xl-5 px-sm-4 px-3 justify-content-center">
                 <div class="col-12 px-1 d-flex justify-content-center">
                   <a class="btn d-flex align-items-center justify-content-center gap-2 w-100 py-2 shadow-sm"
-                    href="<?= $url ?>" style="max-width: 300px; border: 1px solid #000; color: #000;">
+                    href="<?= $signup_url ?>" style="max-width: 300px; border: 1px solid #000; color: #000;">
                     <svg width="24px" height="24px" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
                       <g fill="none" fill-rule="evenodd">
                         <g transform="translate(3,2)" fill-rule="nonzero">
@@ -275,6 +301,16 @@ $url = $client->createAuthUrl();
   <script async defer src="https://buttons.github.io/buttons.js"></script>
   <!-- Control Center for Soft Dashboard: parallax effects, scripts for the example pages etc -->
   <script src="assets/js/soft-ui-dashboard.min.js?v=1.1.0"></script>
+  <script>
+    // Set a timeout to hide the alert after 5 seconds (5000 ms)
+    setTimeout(function() {
+      var alertElement = document.getElementById('alert');
+      if (alertElement) {
+        alertElement.style.display = 'none';
+      }
+    }, 5000); // 5000 ms = 5 seconds
+  </script>
+
 </body>
 
 </html>

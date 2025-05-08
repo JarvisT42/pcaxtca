@@ -1,15 +1,28 @@
 <?php
+// Check if the current environment is local or remote
+$is_local = (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false || strpos($_SERVER['HTTP_HOST'], '127.0.0.1') !== false);
 
-$dbServername = "localhost";
-$dbUsername = "root";
-$dbPassword = "";
-$dbName = "login-data";
+// Echo environment status
 
-$connect = new mysqli($dbServername, $dbUsername, $dbPassword, $dbName);
+// Set database connection settings based on environment
+if ($is_local) {
+  $servername = "srv1865.hstgr.io";
+} else {
+  $servername = "localhost";
+}
 
-/*
-// Check connection
-if ($mysqli -> connect_error) {
-  echo "Failed to connect to MySQL: " . $mysqli -> connect_error;
-  exit();         ^Hx7F|GEevKJ^Hx7F|GEevKJ^Hx7F|GEevKJ^Hx7F|GEevKJ            ^Hx7F|GEevKJ
-}*/
+
+
+// Production environment settings
+
+$username = "u756490121_userpcaxtca";
+$password = "?7AdT?s!+*?S";
+$dbname = "u756490121_pcaxtca";
+
+// Create database connection
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Check the connection
+if ($conn->connect_error) {
+  die("Connection failed: " . $conn->connect_error);
+}

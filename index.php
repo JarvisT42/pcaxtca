@@ -44,7 +44,7 @@
                             <li><a href="#">Shops</a>
                                 <div class="megamenu">
                                     <ul class="single-mega cn-col-4">
-                                        <li class="title">Women's Collection</li>
+                                        <li class="title">Women'ssss Collection</li>
                                         <li><a href="shop.html">Dresses</a></li>
                                         <li><a href="shop.html">Blouses &amp; Shirts</a></li>
                                         <li><a href="shop.html">T-shirts</a></li>
@@ -107,7 +107,7 @@
                 </div>
                 <!-- User Login Info -->
                 <div class="user-login-info">
-                    <a href="sign-in.php"><img src="img/core-img/user.svg" alt=""></a>
+                    <a href="sign-in"><img src="img/core-img/user.svg" alt=""></a>
                 </div>
                 <!-- Cart Area -->
                 <div class="cart-area">
