@@ -1,10 +1,10 @@
 RewriteEngine On
 
-# If the request is not for an existing file or directory
+# Only apply rewrite if the request is NOT an existing file or directory
 
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 
-# Rewrite to .php
+# Internally rewrite /something to /something.php
 
 RewriteRule ^([a-zA-Z0-9_-]+)$ $1.php [L]

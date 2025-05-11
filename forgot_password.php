@@ -1,75 +1,84 @@
 <?php
+
 // Show errors (for development only — disable on production)
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-session_start();
-include('connect/connection.php');
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
+require __DIR__ . "/vendor/autoload.php";
 
+$mail = new PHPMailer(true);
 
-if (!isset($_GET['token'])) {
-    echo "<script>alert('Invalid or missing token.'); window.location.href='index.php';</script>";
-    exit();
-}
-$token = $_GET['token'];
+if (isset($_POST["recover"])) {
+    include('connect/connection.php');
 
-// Check if token exists and is valid
-$sql = mysqli_query($conn, "SELECT * FROM password_reset_tokens WHERE token='$token'");
-if (mysqli_num_rows($sql) === 0) {
-    echo "<script>alert('Invalid or expired token.'); window.location.href='index';</script>";
-    exit();
-}
+    // Sanitize email input
+    $email = mysqli_real_escape_string($conn, $_POST["email"]);
 
-$tokenData = mysqli_fetch_assoc($sql);
-$createdAt = strtotime($tokenData['created_at']);
-$currentTime = time();
-$expirationLimit = 3600; // 3600 seconds = 1 hour
+    $sql = mysqli_query($conn, "SELECT * FROM users WHERE email='$email'");
 
-if (($currentTime - $createdAt) > $expirationLimit) {
-    // Delete the token from the database
-    mysqli_query($conn, "DELETE FROM password_reset_tokens WHERE token='$token'");
-    echo "<script>alert('Token expired. Please request a new one.'); window.location.href='index';</script>";
-    exit();
-}
-
-$email = $tokenData['email'];
-$_SESSION['email'] = $email;
-$_SESSION['token'] = $token;
-
-
-
-
-
-if (isset($_POST["reset"])) {
-    $password = $_POST["password"];
-    $email = $_SESSION['email'];
-    $token = $_SESSION['token'];
-
-    if (!$email || !$token) {
-        echo "<script>alert('Session expired. Please request a new password reset.'); window.location.href='recover.php';</script>";
+    if (mysqli_num_rows($sql) <= 0) {
+        echo "<script>alert('Sorry, no account exists with this email.'); window.location.href='recover.php';</script>";
         exit();
     }
 
-    $hash = password_hash($password, PASSWORD_DEFAULT);
 
-    // Update password
-    $update = mysqli_query($conn, "UPDATE users SET password='$hash' WHERE email='$email'");
 
-    if ($update) {
-        // Delete token
-        mysqli_query($conn, "DELETE FROM password_reset_tokens WHERE token='$token'");
-        echo "<script>alert('Your password has been reset.'); window.location.href='index.php';</script>";
+    // Generate token
+    $token = bin2hex(random_bytes(50));
+    $_SESSION['token'] = $token;
+    $_SESSION['email'] = $email;
+
+    // Save token to database
+    $createdAt = date("Y-m-d H:i:s");
+    $tokenSql = "INSERT INTO password_reset_tokens (email, token, created_at) VALUES (?, ?, ?)";
+    $stmt = mysqli_prepare($conn, $tokenSql);
+    mysqli_stmt_bind_param($stmt, "sss", $email, $token, $createdAt);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+
+    $mail = new PHPMailer(true);
+
+    try {
+        // Server settings
+        $mail->isSMTP();
+
+        $mail->Host       = 'smtp.hostinger.com';               // Your SMTP server
+        $mail->SMTPAuth   = true;
+        $mail->Username   = 'e-pcaxtca@pcaxtca.shop';        // Your email
+        $mail->Password   = '=YIitlw3';                    // Your email password (make sure this is secure!)
+        $mail->SMTPSecure = 'ssl';      // Use SSL (for port 465)
+        $mail->Port       = 465;                              // SSL port
+
+        // Recipients
+        $mail->setFrom('e-pcaxtca@pcaxtca.shop', 'Pcaxtca Shop');  // ✅ Set this to match the Hostinger account
+        $mail->addAddress($email);
+
+        // Content
+        $mail->isHTML(true);
+        $mail->Subject = 'Password Reset Request';
+        $mail->Body    = "<b>Dear User</b>
+            <h3>We received a password reset request</h3>
+            <p>Click the link below to reset your password:</p>
+            <a href='https://pcaxtca.shop/reset_psw?token=$token'>Reset Password</a>
+            <br><br>
+            <p>If you didn't request this, please ignore this email.</p>
+            <p>Best regards,<br>Pcaxtca Team</p>";
+
+        $mail->AltBody = "Password Reset Link: https://pcaxtca.shop/login-system/reset_psw?token=$token";
+
+        $mail->send();
+        echo "<script>window.location.replace('notification.html');</script>";
         exit();
-    } else {
-        echo "<script>alert('Password reset failed. Try again.'); window.location.href='reset_psw.php?token=$token';</script>";
+    } catch (Exception $e) {
+        echo "<script>alert('Message could not be sent. Mailer Error: {$mail->ErrorInfo}'); window.location.href='recover.php';</script>";
         exit();
     }
 }
-
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -164,31 +173,94 @@ if (isset($_POST["reset"])) {
                             <div class="card card-plain mt-8  border border-black p-4 rounded">
                                 <div class="card-header pb-0 text-left bg-transparent">
                                     <h3 class="font-weight-bolder text-info text-gradient">Reset Password</h3>
-                                    <p class="mb-0">Enter your new password to reset</p>
+                                    <p class="mb-0">Enter your email to reset send link</p>
                                 </div>
 
-
-                                <?php if (isset($_GET['password_0']) && $_GET['password_0'] == 1): ?>
+                                <?php if (isset($_GET['send_1']) && $_GET['send_1'] == 1): ?>
 
                                     <div id="alert" class="alert alert-danger mx-4 text-center" role="alert" style="background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 5px;">
-                                        <strong>Error!</strong> Incorrect Password.
+                                        <strong>Error!</strong> Account Not Found.
                                     </div>
                                 <?php endif; ?>
-                                <div class="card-body">
-                                    <form role="form" method="POST" action="">
 
-                                        <label class="form-label">New Password</label>
+                                <div class="card-body">
+                                    <form role="form" action="#" method="POST">
+                                        <!-- CSRF Token (optional) -->
+
+                                        <label for="emailInput" class="form-label">Email</label>
                                         <div class="mb-3">
-                                            <input type="password" name="password" class="form-control" placeholder="Password" required>
+                                            <input type="email" id="emailInput" name="email" class="form-control" placeholder="Enter your email address" required>
+                                            <div id="emailFeedback" class="invalid-feedback mt-1"></div>
                                         </div>
 
                                         <div class="text-center">
-                                            <button type="submit" name="reset" class="btn bg-gradient-info w-100 mt-4 mb-0">
-                                                Reset Password
+                                            <button id="submitBtn" disabled type="submit" name="recover" class="btn bg-gradient-info w-100 mt-4 mb-0">
+                                                Send Password Reset Link
                                             </button>
                                         </div>
 
+                                        <div class="text-center mt-3">
+                                            <a href="signin" class="text-info text-decoration-none" style="font-size: 0.9rem;">Back to Sign In</a>
+                                        </div>
                                     </form>
+
+                                    <script>
+                                        const emailInput = document.getElementById('emailInput');
+                                        const emailFeedback = document.getElementById('emailFeedback');
+                                        const submitBtn = document.getElementById('submitBtn');
+
+                                        emailInput.addEventListener('input', function(e) {
+                                            const email = e.target.value;
+                                            submitBtn.disabled = true; // Default to disabled
+
+                                            if (!validateEmail(email)) {
+                                                emailFeedback.textContent = 'Please enter a valid email address.';
+                                                emailInput.classList.add('is-invalid');
+                                                emailInput.classList.remove('is-valid');
+                                                return;
+                                            }
+
+                                            checkEmailAvailability(email).then(data => {
+                                                if (data.status === 'local') {
+                                                    emailFeedback.textContent = '';
+                                                    emailInput.classList.remove('is-invalid');
+                                                    emailInput.classList.add('is-valid');
+                                                    submitBtn.disabled = false;
+                                                } else if (data.status === 'google_auth') {
+                                                    emailFeedback.textContent = 'This email uses Google Sign-In. Please use Google authentication.';
+                                                    emailInput.classList.add('is-invalid');
+                                                    emailInput.classList.remove('is-valid');
+                                                    submitBtn.disabled = true;
+                                                } else if (data.status === 'not_registered') {
+                                                    emailFeedback.textContent = 'This email is not registered.';
+                                                    emailInput.classList.add('is-invalid');
+                                                    emailInput.classList.remove('is-valid');
+                                                    submitBtn.disabled = true;
+                                                }
+                                            }).catch(error => {
+                                                console.error('Error:', error);
+                                                emailFeedback.textContent = 'Error checking email availability.';
+                                                submitBtn.disabled = true;
+                                            });
+                                        });
+
+
+
+                                        function validateEmail(email) {
+                                            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                                            return re.test(String(email).toLowerCase());
+                                        }
+
+                                        function checkEmailAvailability(email) {
+                                            return fetch('check_email_reset_psw.php', {
+                                                method: 'POST',
+                                                headers: {
+                                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                                },
+                                                body: 'email=' + encodeURIComponent(email)
+                                            }).then(response => response.json());
+                                        }
+                                    </script>
 
                                 </div>
                                 <div class="card-footer text-center pt-0 px-lg-2 px-1">

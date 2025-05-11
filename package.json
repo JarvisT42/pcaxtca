@@ -1,0 +1,21 @@
+{
+  "name": "pcaxtca",
+  "version": "1.0.0",
+  "description": "I've updated the login-System more security.\r 1) allow multiple user login\r 2) get user password as hash password\r 3) check user for the verification status",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JarvisT42/pcaxtca.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/JarvisT42/pcaxtca/issues"
+  },
+  "homepage": "https://github.com/JarvisT42/pcaxtca#readme"
+}

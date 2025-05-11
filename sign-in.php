@@ -1,17 +1,108 @@
-<!--
-=========================================================
-* Soft UI Dashboard 3 - v1.1.0
-=========================================================
+<?php
 
-* Product Page: https://www.creative-tim.com/product/soft-ui-dashboard
-* Copyright 2024 Creative Tim (https://www.creative-tim.com)
-* Licensed under MIT (https://www.creative-tim.com/license)
-* Coded by Creative Tim
+// require __DIR__ . '/vendor/autoload.php';
 
-=========================================================
+// $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+// $dotenv->load();
 
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
--->
+// $client = new Google\Client;
+// $client->setClientId($_ENV['GOOGLE_CLIENT_ID']);
+// $client->setClientSecret($_ENV['GOOGLE_CLIENT_SECRET']);
+// $client->setRedirectUri($_ENV['GOOGLE_REDIRECT_URI']);
+// $client->addScope("email");
+// $client->addScope("profile");
+
+// $url = $client->createAuthUrl();
+
+
+
+require __DIR__ . "/vendor/autoload.php";
+
+// $client = new Google\Client;
+
+// $client->setClientId("195730534849-kr4fp84dqijnsctm7dgc8eji9aq3hk6h.apps.googleusercontent.com");
+// $client->setClientSecret("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");
+// $client->setRedirectUri("http://pcaxtca.shop/redirect.php");
+// $client->addScope("email");
+// $client->addScope("profile");
+
+// $url = $client->createAuthUrl();
+$is_local = (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false || strpos($_SERVER['HTTP_HOST'], '127.0.0.1') !== false);
+
+// Initialize Google Client
+$client = new Google\Client();
+$client->setClientId("195730534849-kr4fp84dqijnsctm7dgc8eji9aq3hk6h.apps.googleusercontent.com");
+
+if ($is_local) {
+  $client->setRedirectUri("http://localhost:3000/redirect.php");
+} else {
+  $client->setRedirectUri("http://pcaxtca.shop/redirect.php");
+}
+
+$client->setClientSecret("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");
+$client->addScope("email");
+$client->addScope("profile");
+
+
+$signin_url = $client->createAuthUrl();
+
+
+session_start();
+require_once 'connect/connection.php'; // Database connection
+
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  $email = $_POST['email'] ?? '';
+  $password = $_POST['password'] ?? '';
+
+  // 1️⃣ Check admin table first
+  $stmt = $conn->prepare("SELECT id, email, password FROM admin WHERE email = ?");
+  $stmt->bind_param("s", $email);
+  $stmt->execute();
+  $result = $stmt->get_result();
+
+  if ($result && $result->num_rows === 1) {
+    $admin = $result->fetch_assoc();
+    if (password_verify($password, $admin['password'])) {
+      $_SESSION['admin_id'] = $admin['id'];
+      $_SESSION['email'] = $admin['email'];
+      $_SESSION['admin_logged_in'] = true; // ✅ Add this
+      header("Location: admin/dashboard");
+      exit;
+    } else {
+      header("Location: sign-in?password_0=1");
+      exit;
+    }
+  }
+
+  // 2️⃣ If not admin, check users table
+  $stmt = $conn->prepare("SELECT id, email, password FROM users WHERE email = ?");
+  $stmt->bind_param("s", $email);
+  $stmt->execute();
+  $result = $stmt->get_result();
+
+  if ($result && $result->num_rows === 1) {
+    $user = $result->fetch_assoc();
+    if (password_verify($password, $user['password'])) {
+      $_SESSION['user_id'] = $user['id'];
+      $_SESSION['email'] = $user['email'];
+      $_SESSION['user_logged_in'] = true; // ✅ Add this
+      header("Location: shop");
+      exit;
+    } else {
+      header("Location: sign-in?password_0=1");
+      exit;
+    }
+  }
+
+  // 3️⃣ If email not found in both tables
+  header("Location: sign-in?account_0=1");
+  exit;
+}
+
+
+
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -34,7 +125,6 @@
   <link id="pagestyle" href="assets/css/soft-ui-dashboard.css?v=1.1.0" rel="stylesheet" />
   <!-- Nepcha Analytics (nepcha.com) -->
   <!-- Nepcha is a easy-to-use web analytics. No cookies and fully compliant with GDPR, CCPA and PECR. -->
-  <script defer data-site="YOUR_DOMAIN_HERE" src="https://api.nepcha.com/js/nepcha-analytics.js"></script>
 </head>
 
 <body class="">
@@ -44,8 +134,8 @@
         <!-- Navbar -->
         <nav class="navbar navbar-expand-lg blur blur-rounded top-0 z-index-3 shadow position-absolute my-3 py-2 start-0 end-0 mx-4">
           <div class="container-fluid pe-0">
-            <a class="navbar-brand font-weight-bolder ms-lg-0 ms-3 " href="dashboard.php">
-              Soft UI Dashboard 3
+            <a class="navbar-brand font-weight-bolder ms-lg-0 ms-3 " href="index">
+              Pcaxtca
             </a>
             <button class="navbar-toggler shadow-none ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#navigation" aria-controls="navigation" aria-expanded="false" aria-label="Toggle navigation">
               <span class="navbar-toggler-icon mt-2">
@@ -55,38 +145,33 @@
               </span>
             </button>
             <div class="collapse navbar-collapse" id="navigation">
-              <ul class="navbar-nav mx-auto ms-xl-auto me-xl-7">
+              <ul class="navbar-nav mx-auto ms-xl-auto me-xl-10">
                 <li class="nav-item">
-                  <a class="nav-link d-flex align-items-center me-2 active" aria-current="page" href="dashboard.php">
+                  <a class="nav-link d-flex align-items-center me-2 active" aria-current="page" href="shop">
                     <i class="fa fa-chart-pie opacity-6 text-dark me-1"></i>
-                    Dashboard
+                    Shop
                   </a>
                 </li>
+
                 <li class="nav-item">
-                  <a class="nav-link me-2" href="profile.php">
-                    <i class="fa fa-user opacity-6 text-dark me-1"></i>
-                    Profile
-                  </a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link me-2" href="sign-up.php">
+                  <a class="nav-link me-2" href="sign-up">
                     <i class="fas fa-user-circle opacity-6 text-dark me-1"></i>
                     Sign Up
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link me-2" href="sign-in.php">
+                  <a class="nav-link me-2" href="sign-in">
                     <i class="fas fa-key opacity-6 text-dark me-1"></i>
                     Sign In
                   </a>
                 </li>
               </ul>
               <li class="nav-item d-flex align-items-center">
-                <a class="btn btn-round btn-sm mb-0 btn-outline-primary me-2" target="_blank" href="https://www.creative-tim.com/builder?ref=navbar-soft-ui-dashboard">Online Builder</a>
+                <a class="btn btn-round btn-sm mb-0 btn-outline-primary me-2" target="_blank" href="https://www.creative-tim.com/builder?ref=navbar-soft-ui-dashboard">Company</a>
               </li>
               <ul class="navbar-nav d-lg-block d-none">
                 <li class="nav-item">
-                  <a href="https://www.creative-tim.com/product/soft-ui-dashboard" class="btn btn-sm btn-round mb-0 me-1 bg-gradient-dark">Free download</a>
+                  <a href="https://www.creative-tim.com/product/soft-ui-dashboard" class="btn btn-sm btn-round mb-0 me-1 bg-gradient-dark">About Us</a>
                 </li>
               </ul>
             </div>
@@ -107,10 +192,23 @@
                   <h3 class="font-weight-bolder text-info text-gradient">Welcome back</h3>
                   <p class="mb-0">Enter your email and password to sign in</p>
                 </div>
+
+                <?php if (isset($_GET['account_0']) && $_GET['account_0'] == 1): ?>
+
+                  <div id="alert" class="alert alert-danger mx-4 text-center" role="alert" style="background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 5px;">
+                    <strong>Error!</strong> Account Not Found.
+                  </div>
+                <?php endif; ?>
+                <?php if (isset($_GET['password_0']) && $_GET['password_0'] == 1): ?>
+
+                  <div id="alert" class="alert alert-danger mx-4 text-center" role="alert" style="background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 5px;">
+                    <strong>Error!</strong> Incorrect Password.
+                  </div>
+                <?php endif; ?>
                 <div class="card-body">
-                  <form role="form">
+                  <form role="form" method="POST" action="">
                     <div class="text-center mt-3">
-                      <a href="<?= $url ?>" class="btn btn-outline-dark w-100">
+                      <a href="<?= $signin_url ?>" class="btn btn-outline-dark w-100">
                         <svg width="24px" height="24px" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
                           <g fill="none" fill-rule="evenodd">
                             <g transform="translate(3,2)" fill-rule="nonzero">
@@ -127,19 +225,32 @@
 
                     <label>Email</label>
                     <div class="mb-3">
-                      <input type="email" class="form-control" placeholder="Email" aria-label="Email" aria-describedby="email-addon">
+                      <input type="email" name="email" class="form-control" placeholder="Email" required>
                     </div>
                     <label>Password</label>
                     <div class="mb-3">
-                      <input type="email" class="form-control" placeholder="Password" aria-label="Password" aria-describedby="password-addon">
+                      <input type="password" name="password" class="form-control" placeholder="Password" required>
                     </div>
-                    <div class="form-check form-switch">
-                      <input class="form-check-input" type="checkbox" id="rememberMe" checked="">
-                      <label class="form-check-label" for="rememberMe">Remember me</label>
+
+
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                      <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" id="rememberMe" checked>
+                        <label class="form-check-label mb-0" for="rememberMe">Remember me</label>
+                      </div>
+                      <a href="forgot_password" class="text-info text-decoration-none" style="font-size: 0.9rem;">Forgot password?</a>
                     </div>
+
+
+
+
+
+
                     <div class="text-center">
-                      <button type="button" class="btn bg-gradient-info w-100 mt-4 mb-0">Sign in</button>
+                      <button type="submit" class="btn bg-gradient-info w-100 mt-4 mb-0">Sign in</button>
                     </div>
+
                   </form>
                 </div>
                 <div class="card-footer text-center pt-0 px-lg-2 px-1">
@@ -232,6 +343,17 @@
   <script async defer src="https://buttons.github.io/buttons.js"></script>
   <!-- Control Center for Soft Dashboard: parallax effects, scripts for the example pages etc -->
   <script src="assets/js/soft-ui-dashboard.min.js?v=1.1.0"></script>
+
+  <script>
+    // Set a timeout to hide the alert after 5 seconds (5000 ms)
+    setTimeout(function() {
+      var alertElement = document.getElementById('alert');
+      if (alertElement) {
+        alertElement.style.display = 'none';
+      }
+    }, 5000); // 5000 ms = 5 seconds
+  </script>
+
 </body>
 
 </html>

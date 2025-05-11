@@ -11,12 +11,25 @@ require "connect/connection.php"; // should define $conn = new mysqli(...)
 session_start();
 
 // Setup Google Client
-$client = new Google\Client;
+$is_local = (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false || strpos($_SERVER['HTTP_HOST'], '127.0.0.1') !== false);
+
+// Initialize Google Client
+$client = new Google\Client();
 $client->setClientId("195730534849-kr4fp84dqijnsctm7dgc8eji9aq3hk6h.apps.googleusercontent.com");
+
+if ($is_local) {
+    $client->setRedirectUri("http://localhost:3000/redirect.php");
+} else {
+    $client->setRedirectUri("http://pcaxtca.shop/redirect.php");
+}
+
 $client->setClientSecret("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");
-$client->setRedirectUri("http://pcaxtca.shop/redirect.php");
 $client->addScope("email");
 $client->addScope("profile");
+
+
+
+
 
 // Check for code from Google
 if (!isset($_GET["code"])) {
@@ -57,12 +70,13 @@ if ($mode === "signup") {
         header("Location: sign-up?registered_already=1");
         exit;
     }
-
+    $auth_provider = "google";
     // Insert new user
-    $stmt = $conn->prepare("INSERT INTO users (email, name) VALUES (?, ?)");
-    $stmt->bind_param("ss", $email, $name);
+    $stmt = $conn->prepare("INSERT INTO users (email, name, auth_provider) VALUES (?, ?, ?)");
+    $stmt->bind_param("sss", $email, $name, $auth_provider);
 
     if ($stmt->execute()) {
+
         header("Location: user/index");
     } else {
         echo "Error inserting user: " . $stmt->error;
@@ -73,22 +87,30 @@ if ($mode === "signup") {
     exit;
 } else {
     // Signin process
-    $stmt = $conn->prepare("SELECT name FROM users WHERE email = ?");
+    $stmt = $conn->prepare("SELECT id, email, name FROM users WHERE email = ?");
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $stmt->store_result();
 
     if ($stmt->num_rows > 0) {
-        $_SESSION["email"] = $email;
-        $_SESSION["name"] = $name;
-
-        // Redirect to dashboard
-        header("Location: dashboard.php");
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['email'] = $user['email'];
+        $_SESSION['user_logged_in'] = true; // ✅ Add this
+        header("Location: shop");
         exit;
+    }
+
+    // Insert new user
+    $stmt = $conn->prepare("INSERT INTO users (email, name) VALUES (?, ?)");
+    $stmt->bind_param("ss", $email, $name);
+
+    if ($stmt->execute()) {
+        header("Location: user/dashboard");
     } else {
-        echo "No account found. Please sign up first.";
+        echo "Error inserting user: " . $stmt->error;
     }
 
     $stmt->close();
     $conn->close();
+    exit;
 }

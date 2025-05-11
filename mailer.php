@@ -13,15 +13,15 @@ try {
 
 
 
-    $mail->Host       = 'mail.gfi-edu.com';               // Your SMTP server
+    $mail->Host       = 'smtp.hostinger.com';               // Your SMTP server
     $mail->SMTPAuth   = true;
-    $mail->Username   = 'gfcilibrary@gfi-edu.com';        // Your email
-    $mail->Password   = '0l)^v*8UI(8;';                    // Your email password (make sure this is secure!)
+    $mail->Username   = 'e-pcaxtca@pcaxtca.shop';        // Your email
+    $mail->Password   = '=YIitlw3';                    // Your email password (make sure this is secure!)
     $mail->SMTPSecure = 'ssl';      // Use SSL (for port 465)
     $mail->Port       = 465;                              // SSL port
 
     // Recipients
-    $mail->setFrom('gfcilibrary@gfi-edu.com', 'GFCI Library');
+    $mail->setFrom('e-pcaxtca@pcaxtca.shop', 'GFCI Library');  // ✅ Set this to match the Hostinger account
     $mail->addAddress('kentjoshuazamoradaborbor@gmail.com', 'Recipient Name');  // Add your recipient
 
     // Content

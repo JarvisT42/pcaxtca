@@ -54,6 +54,35 @@ $client->setState('signup'); // or 'signin'
 $signup_url = $client->createAuthUrl();
 
 
+session_start();
+require_once 'connect/connection.php'; // Include your database configuration
+
+// Server-side form handling
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  $email = $_POST['email'] ?? '';
+  $password = $_POST['password'] ?? '';
+
+  // ✅ Hash the password securely
+  $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+  $stmt = $conn->prepare("INSERT INTO users (email, password) VALUES (?, ?)");
+  $stmt->bind_param("ss", $email, $hashedPassword);
+
+  if ($stmt->execute()) {
+    header("Location: user/dashboard");
+    exit;
+  } else {
+    echo "Error inserting user: " . $stmt->error;
+  }
+
+  // This line won't be reached if insertion is successful
+  header("Location: registration-success.php");
+  exit;
+}
+
+
+
+
 
 
 ?>
@@ -201,27 +230,91 @@ $signup_url = $client->createAuthUrl();
 
 
               <div class="card-body">
-                <form role="form text-left">
+
+
+
+                <form role="form text-left" method="POST" action="">
                   <div class="mb-3">
-                    <input type="text" class="form-control" placeholder="Name" aria-label="Name" aria-describedby="email-addon">
+                    <input type="email" class="form-control" placeholder="Email" aria-label="Email"
+                      id="emailInput" name="email" required
+                      aria-describedby="email-addon">
+                    <div id="emailFeedback" class="invalid-feedback"></div>
                   </div>
-                  <div class="mb-3">
-                    <input type="email" class="form-control" placeholder="Email" aria-label="Email" aria-describedby="email-addon">
+
+                  <div id="passwordSection" style="display: none;">
+                    <div class="mb-3">
+                      <input type="password" class="form-control" placeholder="Password"
+                        aria-label="Password" name="password" required
+                        aria-describedby="password-addon">
+                    </div>
+                    <div class="form-check form-check-info text-left">
+                      <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" required>
+                      <label class="form-check-label" for="flexCheckDefault">
+                        I agree to the <a href="#" class="text-dark font-weight-bolder">Terms and Conditions</a>
+                      </label>
+                    </div>
                   </div>
-                  <div class="mb-3">
-                    <input type="password" class="form-control" placeholder="Password" aria-label="Password" aria-describedby="password-addon">
-                  </div>
-                  <div class="form-check form-check-info text-left">
-                    <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked>
-                    <label class="form-check-label" for="flexCheckDefault">
-                      I agree the <a href="javascript:;" class="text-dark font-weight-bolder">Terms and Conditions</a>
-                    </label>
-                  </div>
+
                   <div class="text-center">
-                    <button type="button" class="btn bg-gradient-dark w-100 my-4 mb-2">Sign up</button>
+                    <button type="submit" class="btn bg-gradient-dark w-100 my-4 mb-2" id="submitBtn" disabled>
+                      Sign up
+                    </button>
                   </div>
-                  <p class="text-sm mt-3 mb-0">Already have an account? <a href="javascript:;" class="text-dark font-weight-bolder">Sign in</a></p>
                 </form>
+                <p class="text-sm mt-3 mb-0">Already have an account?
+                  <a href="login.php" class="text-dark font-weight-bolder">Sign in</a>
+                </p>
+                <script>
+                  document.getElementById('emailInput').addEventListener('input', function(e) {
+                    const email = e.target.value;
+                    const emailFeedback = document.getElementById('emailFeedback');
+                    const passwordSection = document.getElementById('passwordSection');
+                    const submitBtn = document.getElementById('submitBtn');
+
+                    if (validateEmail(email)) {
+                      checkEmailAvailability(email).then(available => {
+                        if (available) {
+                          emailFeedback.textContent = '';
+                          e.target.classList.remove('is-invalid');
+                          passwordSection.style.display = 'block';
+                          submitBtn.disabled = false;
+                        } else {
+                          emailFeedback.textContent = 'This email is already registered';
+                          e.target.classList.add('is-invalid');
+                          passwordSection.style.display = 'none';
+                          submitBtn.disabled = true;
+                        }
+                      });
+                    } else {
+                      emailFeedback.textContent = 'Please enter a valid email address';
+                      e.target.classList.add('is-invalid');
+                      passwordSection.style.display = 'none';
+                      submitBtn.disabled = true;
+                    }
+                  });
+
+                  function validateEmail(email) {
+                    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    return re.test(String(email).toLowerCase());
+                  }
+
+                  function checkEmailAvailability(email) {
+                    return fetch('check_email.php', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: 'email=' + encodeURIComponent(email)
+                      })
+                      .then(response => response.json())
+                      .then(data => data.available)
+                      .catch(error => {
+                        console.error('Error:', error);
+                        return false;
+                      });
+                  }
+                </script>
+
               </div>
             </div>
           </div>

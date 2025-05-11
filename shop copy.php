@@ -1,3 +1,11 @@
+<?php
+include 'connect/connection.php';
+
+
+
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -41,10 +49,10 @@
                     <!-- Nav Start -->
                     <div class="classynav">
                         <ul>
-                            <li><a href="#">Shops</a>
+                            <li><a href="#">Shop</a>
                                 <div class="megamenu">
                                     <ul class="single-mega cn-col-4">
-                                        <li class="title">Women'ssss Collection</li>
+                                        <li class="title">Women's Collection</li>
                                         <li><a href="shop.html">Dresses</a></li>
                                         <li><a href="shop.html">Blouses &amp; Shirts</a></li>
                                         <li><a href="shop.html">T-shirts</a></li>
@@ -74,8 +82,8 @@
                             </li>
                             <li><a href="#">Pages</a>
                                 <ul class="dropdown">
-                                    <li><a href="index">Home</a></li>
-                                    <li><a href="shop">Shop</a></li>
+                                    <li><a href="index.html">Home</a></li>
+                                    <li><a href="shop.html">Shop</a></li>
                                     <li><a href="single-product-details.html">Product Details</a></li>
                                     <li><a href="checkout.html">Checkout</a></li>
                                     <li><a href="blog.html">Blog</a></li>
@@ -200,258 +208,206 @@
     </div>
     <!-- ##### Right Side Cart End ##### -->
 
-    <!-- ##### Welcome Area Start ##### -->
-    <section class="welcome_area bg-img background-overlay" style="background-image: url(img/bg-img/bg-1.jpg);">
+    <!-- ##### Breadcumb Area Start ##### -->
+    <div class="breadcumb_area bg-img" style="background-image: url(img/bg-img/breadcumb.jpg);">
         <div class="container h-100">
             <div class="row h-100 align-items-center">
                 <div class="col-12">
-                    <div class="hero-content">
-                        <h6>Ravi</h6>
-                        <h2>Winter Collection</h2>
-                        <a href="#" class="btn essence-btn">view collection</a>
+                    <div class="page-title text-center">
+                        <h2>dresses</h2>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ##### Breadcumb Area End ##### -->
+
+    <!-- ##### Shop Grid Area Start ##### -->
+    <section class="shop_grid_area section-padding-80">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 col-md-4 col-lg-3">
+                    <div class="shop_sidebar_area">
+                        <!-- Categories Widget -->
+                        <div class="widget catagory mb-50">
+                            <h6 class="widget-title mb-30">Categories</h6>
+                            <div class="catagories-menu">
+                                <ul>
+                                    <li><a href="?category=all">All Categories</a></li>
+                                    <?php
+                                    $categories = $conn->query("SELECT id, product_category FROM product_category");
+                                    if ($categories && $categories->num_rows > 0) {
+                                        while ($category = $categories->fetch_assoc()) {
+                                            echo '<li><a href="?category=' . $category['id'] . '">'
+                                                . htmlspecialchars($category['product_category']) . '</a></li>';
+                                        }
+                                    }
+                                    ?>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Price Filter Widget -->
+                        <div class="widget price mb-50">
+                            <h6 class="widget-title mb-30">Filter by</h6>
+                            <p class="widget-title2 mb-30">Price</p>
+                            <div class="widget-desc">
+                                <?php
+                                $priceRange = $conn->query("SELECT MIN(price) AS min_price, MAX(price) AS max_price FROM products")->fetch_assoc();
+                                ?>
+                                <div class="slider-range">
+                                    <div data-min="<?= $priceRange['min_price'] ?>"
+                                        data-max="<?= $priceRange['max_price'] ?>"
+                                        data-unit="₱"
+                                        class="slider-range-price ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all">
+                                        <div class="ui-slider-range ui-widget-header ui-corner-all"></div>
+                                        <span class="ui-slider-handle ui-state-default ui-corner-all" tabindex="0"></span>
+                                        <span class="ui-slider-handle ui-state-default ui-corner-all" tabindex="0"></span>
+                                    </div>
+                                    <div class="range-price">Range: ₱<?= $priceRange['min_price'] ?> - $<?= $priceRange['max_price'] ?></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-8 col-lg-9">
+                    <div class="shop_grid_product_area">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="product-topbar d-flex align-items-center justify-content-between">
+                                    <!-- Total Products -->
+                                    <div class="total-products">
+                                        <?php
+                                        $category_filter = "";
+                                        if (isset($_GET['category']) && $_GET['category'] !== 'all') {
+                                            $category_id = intval($_GET['category']);
+                                            $category_filter = "WHERE product_category_id = $category_id";
+                                        }
+                                        $totalProducts = $conn->query("SELECT COUNT(*) AS total FROM products $category_filter")->fetch_assoc()['total'];
+                                        ?>
+                                        <p><span><?= $totalProducts ?></span> products found</p>
+                                    </div>
+
+                                    <!-- Sorting -->
+                                    <div class="product-sorting d-flex">
+                                        <p>Sort by:</p>
+                                        <form action="" method="get">
+                                            <select name="sort" id="sortByselect" onchange="this.form.submit()">
+                                                <option value="newest" <?= (isset($_GET['sort']) && $_GET['sort'] === 'newest') ? 'selected' : '' ?>>Newest</option>
+                                                <option value="price_desc" <?= (isset($_GET['sort']) && $_GET['sort'] === 'price_desc') ? 'selected' : '' ?>>Price: High to Low</option>
+                                                <option value="price_asc" <?= (isset($_GET['sort']) && $_GET['sort'] === 'price_asc') ? 'selected' : '' ?>>Price: Low to High</option>
+                                            </select>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <?php
+                            // Build SQL query
+                            $sort_order = "ORDER BY id DESC";
+                            if (isset($_GET['sort'])) {
+                                switch ($_GET['sort']) {
+                                    case 'price_desc':
+                                        $sort_order = "ORDER BY price DESC";
+                                        break;
+                                    case 'price_asc':
+                                        $sort_order = "ORDER BY price ASC";
+                                        break;
+                                    case 'newest':
+                                    default:
+                                        $sort_order = "ORDER BY id DESC";
+                                }
+                            }
+
+                            $productsQuery = "SELECT p.*, pc.product_category 
+                                         FROM products p
+                                         JOIN product_category pc ON p.product_category_id = pc.id
+                                         $category_filter
+                                         $sort_order";
+
+                            $products = $conn->query($productsQuery);
+
+                            if ($products && $products->num_rows > 0) {
+                                while ($product = $products->fetch_assoc()) {
+                            ?>
+                                    <div class="col-12 col-sm-6 col-lg-4">
+                                        <div class="single-product-wrapper">
+                                            <div class="product-img">
+                                                <img src="<?= htmlspecialchars('admin/' . $product['image_path']) ?>" alt="<?= htmlspecialchars($product['product_name']) ?>">
+                                                <?php if ($product['sale_price'] < $product['price']) { ?>
+                                                    <div class="product-badge offer-badge">
+                                                        <span>-<?= round(($product['price'] - $product['sale_price']) / $product['price'] * 100) ?>%</span>
+                                                    </div>
+                                                <?php } ?>
+                                                <div class="product-favourite">
+                                                    <a href="#" class="favme fa fa-heart"></a>
+                                                </div>
+                                            </div>
+                                            <div class="product-description">
+                                                <span><?= htmlspecialchars($product['product_category']) ?></span>
+                                                <a href="single-product-details.php?id=<?= $product['id'] ?>">
+                                                    <h6><?= htmlspecialchars($product['product_name']) ?></h6>
+                                                </a>
+                                                <?php if ($product['sale_price'] < $product['price']) { ?>
+                                                    <p class="product-price">
+                                                        <span class="old-price">₱<?= $product['price'] ?></span>
+                                                        ₱<?= $product['sale_price'] ?>
+                                                    </p>
+                                                <?php } else { ?>
+                                                    <p class="product-price">₱<?= $product['price'] ?></p>
+                                                <?php } ?>
+                                                <div class="hover-content">
+                                                    <div class="add-to-cart-btn">
+                                                        <a href="#" class="btn essence-btn">Add to Cart</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                            <?php
+                                }
+                            } else {
+                                echo '<div class="col-12"><p>No products found.</p></div>';
+                            }
+                            ?>
+                        </div>
+                    </div>
+
+                    <!-- Pagination -->
+                    <?php
+                    $perPage = 9;
+                    $totalPages = ceil($totalProducts / $perPage);
+                    $currentPage = isset($_GET['page']) ? intval($_GET['page']) : 1;
+                    ?>
+                    <nav aria-label="navigation">
+                        <ul class="pagination mt-50 mb-70">
+                            <?php if ($currentPage > 1) { ?>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=<?= $currentPage - 1 ?>"><i class="fa fa-angle-left"></i></a>
+                                </li>
+                            <?php } ?>
+
+                            <?php for ($i = 1; $i <= $totalPages; $i++) { ?>
+                                <li class="page-item <?= $i === $currentPage ? 'active' : '' ?>">
+                                    <a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a>
+                                </li>
+                            <?php } ?>
+
+                            <?php if ($currentPage < $totalPages) { ?>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=<?= $currentPage + 1 ?>"><i class="fa fa-angle-right"></i></a>
+                                </li>
+                            <?php } ?>
+                        </ul>
+                    </nav>
                 </div>
             </div>
         </div>
     </section>
-    <!-- ##### Welcome Area End ##### -->
-
-    <!-- ##### Top Catagory Area Start ##### -->
-    <div class="top_catagory_area section-padding-80 clearfix">
-        <div class="container">
-            <div class="row justify-content-center">
-                <!-- Single Catagory -->
-                <div class="col-12 col-sm-6 col-md-4">
-                    <div class="single_catagory_area d-flex align-items-center justify-content-center bg-img" style="background-image: url(img/bg-img/bg-2.jpg);">
-                        <div class="catagory-content">
-                            <a href="#">Clothing</a>
-                        </div>
-                    </div>
-                </div>
-                <!-- Single Catagory -->
-                <div class="col-12 col-sm-6 col-md-4">
-                    <div class="single_catagory_area d-flex align-items-center justify-content-center bg-img" style="background-image: url(img/bg-img/bg-3.jpg);">
-                        <div class="catagory-content">
-                            <a href="#">Shoes</a>
-                        </div>
-                    </div>
-                </div>
-                <!-- Single Catagory -->
-                <div class="col-12 col-sm-6 col-md-4">
-                    <div class="single_catagory_area d-flex align-items-center justify-content-center bg-img" style="background-image: url(img/bg-img/bg-4.jpg);">
-                        <div class="catagory-content">
-                            <a href="#">Accessories</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- ##### Top Catagory Area End ##### -->
-
-    <!-- ##### CTA Area Start ##### -->
-    <div class="cta-area">
-        <div class="container">
-            <div class="row">
-                <div class="col-12">
-                    <div class="cta-content bg-img background-overlay" style="background-image: url(img/bg-img/bg-5.jpg);">
-                        <div class="h-100 d-flex align-items-center justify-content-end">
-                            <div class="cta--text">
-                                <h6>-60%</h6>
-                                <h2>Global Sale</h2>
-                                <a href="#" class="btn essence-btn">Buy Now</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- ##### CTA Area End ##### -->
-
-    <!-- ##### New Arrivals Area Start ##### -->
-    <section class="new_arrivals_area section-padding-80 clearfix">
-        <div class="container">
-            <div class="row">
-                <div class="col-12">
-                    <div class="section-heading text-center">
-                        <h2>Popular Products</h2>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="container">
-            <div class="row">
-                <div class="col-12">
-                    <div class="popular-products-slides owl-carousel">
-
-                        <!-- Single Product -->
-                        <div class="single-product-wrapper">
-                            <!-- Product Image -->
-                            <div class="product-img">
-                                <img src="img/product-img/product-1.jpg" alt="">
-                                <!-- Hover Thumb -->
-                                <img class="hover-img" src="img/product-img/product-2.jpg" alt="">
-                                <!-- Favourite -->
-                                <div class="product-favourite">
-                                    <a href="#" class="favme fa fa-heart"></a>
-                                </div>
-                            </div>
-                            <!-- Product Description -->
-                            <div class="product-description">
-                                <span>topshop</span>
-                                <a href="single-product-details.html">
-                                    <h6>Knot Front Mini Dress</h6>
-                                </a>
-                                <p class="product-price">$80.00</p>
-
-                                <!-- Hover Content -->
-                                <div class="hover-content">
-                                    <!-- Add to Cart -->
-                                    <div class="add-to-cart-btn">
-                                        <a href="#" class="btn essence-btn">Add to Cart</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Single Product -->
-                        <div class="single-product-wrapper">
-                            <!-- Product Image -->
-                            <div class="product-img">
-                                <img src="img/product-img/product-2.jpg" alt="">
-                                <!-- Hover Thumb -->
-                                <img class="hover-img" src="img/product-img/product-3.jpg" alt="">
-                                <!-- Favourite -->
-                                <div class="product-favourite">
-                                    <a href="#" class="favme fa fa-heart"></a>
-                                </div>
-                            </div>
-                            <!-- Product Description -->
-                            <div class="product-description">
-                                <span>topshop</span>
-                                <a href="single-product-details.html">
-                                    <h6>Poplin Displaced Wrap Dress</h6>
-                                </a>
-                                <p class="product-price">$80.00</p>
-
-                                <!-- Hover Content -->
-                                <div class="hover-content">
-                                    <!-- Add to Cart -->
-                                    <div class="add-to-cart-btn">
-                                        <a href="#" class="btn essence-btn">Add to Cart</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Single Product -->
-                        <div class="single-product-wrapper">
-                            <!-- Product Image -->
-                            <div class="product-img">
-                                <img src="img/product-img/product-3.jpg" alt="">
-                                <!-- Hover Thumb -->
-                                <img class="hover-img" src="img/product-img/product-4.jpg" alt="">
-
-                                <!-- Product Badge -->
-                                <div class="product-badge offer-badge">
-                                    <span>-30%</span>
-                                </div>
-
-                                <!-- Favourite -->
-                                <div class="product-favourite">
-                                    <a href="#" class="favme fa fa-heart"></a>
-                                </div>
-                            </div>
-                            <!-- Product Description -->
-                            <div class="product-description">
-                                <span>mango</span>
-                                <a href="single-product-details.html">
-                                    <h6>PETITE Crepe Wrap Mini Dress</h6>
-                                </a>
-                                <p class="product-price"><span class="old-price">$75.00</span> $55.00</p>
-
-                                <!-- Hover Content -->
-                                <div class="hover-content">
-                                    <!-- Add to Cart -->
-                                    <div class="add-to-cart-btn">
-                                        <a href="#" class="btn essence-btn">Add to Cart</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Single Product -->
-                        <div class="single-product-wrapper">
-                            <!-- Product Image -->
-                            <div class="product-img">
-                                <img src="img/product-img/product-4.jpg" alt="">
-                                <!-- Hover Thumb -->
-                                <img class="hover-img" src="img/product-img/product-5.jpg" alt="">
-
-                                <!-- Product Badge -->
-                                <div class="product-badge new-badge">
-                                    <span>New</span>
-                                </div>
-
-                                <!-- Favourite -->
-                                <div class="product-favourite">
-                                    <a href="#" class="favme fa fa-heart"></a>
-                                </div>
-                            </div>
-                            <!-- Product Description -->
-                            <div class="product-description">
-                                <span>mango</span>
-                                <a href="single-product-details.html">
-                                    <h6>PETITE Belted Jumper Dress</h6>
-                                </a>
-                                <p class="product-price">$80.00</p>
-
-                                <!-- Hover Content -->
-                                <div class="hover-content">
-                                    <!-- Add to Cart -->
-                                    <div class="add-to-cart-btn">
-                                        <a href="#" class="btn essence-btn">Add to Cart</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    <!-- ##### New Arrivals Area End ##### -->
-
-    <!-- ##### Brands Area Start ##### -->
-    <div class="brands-area d-flex align-items-center justify-content-between">
-        <!-- Brand Logo -->
-        <div class="single-brands-logo">
-            <img src="img/core-img/brand1.png" alt="">
-        </div>
-        <!-- Brand Logo -->
-        <div class="single-brands-logo">
-            <img src="img/core-img/brand2.png" alt="">
-        </div>
-        <!-- Brand Logo -->
-        <div class="single-brands-logo">
-            <img src="img/core-img/brand3.png" alt="">
-        </div>
-        <!-- Brand Logo -->
-        <div class="single-brands-logo">
-            <img src="img/core-img/brand4.png" alt="">
-        </div>
-        <!-- Brand Logo -->
-        <div class="single-brands-logo">
-            <img src="img/core-img/brand5.png" alt="">
-        </div>
-        <!-- Brand Logo -->
-        <div class="single-brands-logo">
-            <img src="img/core-img/brand6.png" alt="">
-        </div>
-    </div>
-    <!-- ##### Brands Area End ##### -->
+    <!-- ##### Shop Grid Area End ##### -->
 
     <!-- ##### Footer Area Start ##### -->
     <footer class="footer_area clearfix">
