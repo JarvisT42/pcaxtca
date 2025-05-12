@@ -70,7 +70,8 @@
 
          <!-- Cart Button -->
          <div class="cart-button">
-             <a href="#" id="rightSideCart"><img src="img/core-img/bag.svg" alt=""> <span>3</span></a>
+             <a href="#" id="rightSideCart"><img src="img/core-img/bag.svg" alt=""> <span><?= isset($_SESSION['cart']) ? count($_SESSION['cart']) : 0 ?></span>
+             </a>
          </div>
 
          <div class="cart-content d-flex">
@@ -91,7 +92,21 @@
 
                                  <!-- Cart Item Desc -->
                                  <div class="cart-item-desc">
-                                     <span class="product-remove"><i class="fa fa-close" aria-hidden="true"></i></span>
+
+                                     <span class="product-remove" data-id="<?= $id ?>">
+                                         <i class="fa fa-close" aria-hidden="true"></i>
+                                     </span>
+
+                                     <script>
+                                         document.querySelectorAll('.product-remove').forEach(function(el) {
+                                             el.addEventListener('click', function() {
+                                                 const id = this.getAttribute('data-id');
+                                                 window.location.href = 'remove_from_cart.php?id=' + id;
+                                             });
+                                         });
+                                     </script>
+
+
                                      <span class="badge">Mango</span>
 
                                      <h6><?= htmlspecialchars($item['name']) ?></h6>
@@ -117,13 +132,32 @@
 
                  <h2>Summary</h2>
                  <ul class="summary-table">
-                     <li><span>subtotal:</span> <span>$274.00</span></li>
-                     <li><span>delivery:</span> <span>Free</span></li>
-                     <li><span>discount:</span> <span>-15%</span></li>
-                     <li><span>total:</span> <span>$232.00</span></li>
+
+                     <?php
+                        $subtotal = 0; // Set default
+                        $discount = 0;
+                        $delivery = 0;
+
+                        // If cart is not empty, calculate subtotal
+                        if (isset($_SESSION['cart']) && !empty($_SESSION['cart'])) {
+                            foreach ($_SESSION['cart'] as $item) {
+                                $subtotal += $item['price'] * $item['quantity'];
+                            }
+                        }
+
+                        $total = $subtotal - $discount + $delivery;
+                        ?>
+
+                     <li><span>subtotal:</span> <span>$<?= isset($subtotal) ? number_format($subtotal, 2) : '0.00' ?></span></li>
+                     <li><span>delivery:</span> <span><?= $delivery === 0 ? 'Free' : '$' . number_format($delivery, 2) ?></span></li>
+                     <li><span>discount:</span> <span>-$<?= number_format($discount, 2) ?></span></li>
+                     <li><span>total:</span> <span>$<?= isset($total) ? number_format($total, 2) : '0.00' ?></span></li>
+
+
+
                  </ul>
                  <div class="checkout-btn mt-100">
-                     <a href="checkout.html" class="btn essence-btn">check out</a>
+                     <a href="checkout.php" class="btn essence-btn">check out</a>
                  </div>
              </div>
          </div>

@@ -147,7 +147,7 @@
     </nav>
     <!-- End Navbar -->
     <div class="container-fluid py-4">
-      <div class="row">
+      <!-- <div class="row">
         <div class="col-lg-6 col-12">
           <div class="row">
             <div class="col-lg-6 col-md-6 col-12">
@@ -338,8 +338,8 @@
             </div>
           </div>
         </div>
-      </div>
-      <div class="row my-4">
+      </div> -->
+      <!-- <div class="row my-4">
         <div class="col-lg-8 col-md-6 mb-md-0 mb-4">
           <div class="card">
             <div class="card-header pb-0">
@@ -683,7 +683,7 @@
             </div>
           </div>
         </div>
-      </div>
+      </div> -->
       <div class="row mt-4">
         <div class="col-lg-7 mb-lg-0 mb-4">
           <div class="card">

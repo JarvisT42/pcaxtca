@@ -2,7 +2,6 @@
 include 'auth_admin.php';
 include '../connect/connection.php';
 
-
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['sellProduct'])) {
     $product_id = intval($_POST['product_id']);
     $quantity_to_sell = intval($_POST['quantity']);
@@ -13,21 +12,49 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['sellProduct'])) {
     } elseif ($quantity_to_sell > $available_quantity) {
         $error = "Not enough stock available!";
     } else {
-        // Insert sale into product_sales
-        $stmt = $conn->prepare("INSERT INTO product_on_sales (product_id, on_sale_quantity, sale_date) VALUES (?, ?, NOW())");
-        if ($stmt->execute([$product_id, $quantity_to_sell])) {
-            $new_quantity = $available_quantity - $quantity_to_sell;
-            $stmt = $conn->prepare("UPDATE products SET quantity = ? WHERE id = ?");
-            if ($stmt->execute([$new_quantity, $product_id])) {
-                header("Location: " . $_SERVER['PHP_SELF']);
+        // Check if a record already exists for this product_id
+        $checkStmt = $conn->prepare("SELECT id, on_sale_quantity FROM product_on_sales WHERE product_id = ?");
+        $checkStmt->bind_param("i", $product_id);
+        $checkStmt->execute();
+        $checkStmt->store_result();
+
+        if ($checkStmt->num_rows == 0) {
+            // No existing record, proceed to insert
+            $insertStmt = $conn->prepare("INSERT INTO product_on_sales (product_id, on_sale_quantity, sale_date) VALUES (?, ?, NOW())");
+            $insertStmt->bind_param("ii", $product_id, $quantity_to_sell);
+
+            if ($insertStmt->execute()) {
+                header("Location: " . $_SERVER['PHP_SELF'] . "?sale_success=1");
+                exit();
             } else {
-                $error = "Failed to update product quantity.";
+                $error = "Failed to record product sale.";
             }
+            $insertStmt->close();
         } else {
-            $error = "Failed to record product sale.";
+            // Existing record found, proceed to update the on_sale_quantity
+            $checkStmt->bind_result($existing_id, $existing_quantity);
+            $checkStmt->fetch();
+
+            // Update the quantity in the database
+            $new_quantity = $existing_quantity + $quantity_to_sell;
+            $updateStmt = $conn->prepare("UPDATE product_on_sales SET on_sale_quantity = ? WHERE product_id = ?");
+            $updateStmt->bind_param("ii", $new_quantity, $product_id);
+
+            if ($updateStmt->execute()) {
+                header("Location: " . $_SERVER['PHP_SELF'] . "?sale_updated=1");
+                exit();
+            } else {
+                $error = "Failed to update product sale.";
+            }
+            $updateStmt->close();
         }
+
+        $checkStmt->close();
     }
 }
+
+
+
 
 
 ?>
@@ -69,7 +96,6 @@ include 'admin_header.php';
                                         <th>Name</th>
                                         <th>Description</th>
                                         <th>Price</th>
-                                        <th>Total quantity</th>
 
                                         <th>Stock Quantity</th>
                                         <th>on sale</th>
@@ -89,8 +115,8 @@ include 'admin_header.php';
         p.price, 
         p.quantity, 
         p.image_path,
-        COALESCE(SUM(s.on_sale_quantity), 0) AS total_on_sale_quantity,
-        (COALESCE(SUM(s.on_sale_quantity), 0) + p.quantity) AS total_quantity
+       s.on_sale_quantity
+      
     FROM products p
     LEFT JOIN product_on_sales s ON p.id = s.product_id
     GROUP BY p.id, p.product_name, p.description, p.price, p.quantity, p.image_path
@@ -108,10 +134,9 @@ include 'admin_header.php';
                                             echo "<td>" . htmlspecialchars($row["product_name"]) . "</td>";
                                             echo "<td>" . htmlspecialchars($row["description"]) . "</td>";
                                             echo "<td>" . htmlspecialchars($row["price"]) . "</td>";
-                                            echo "<td>" . htmlspecialchars($row["total_quantity"]) . "</td>";
 
                                             echo "<td>" . htmlspecialchars($row["quantity"]) . "</td>";
-                                            echo "<td>" . htmlspecialchars($row["total_on_sale_quantity"]) . "</td>"; // ✅ This line
+                                            echo "<td>" . htmlspecialchars($row["on_sale_quantity"]) . "</td>"; // ✅ This line
 
                                             $imagePath = htmlspecialchars($row["image_path"]);
                                             echo "<td><img src='$imagePath' alt='Product Image' width='60' height='60' style='object-fit: cover;'></td>";
@@ -128,14 +153,16 @@ include 'admin_header.php';
                 Edit
             </button>
             
-            <button type='button' class='btn btn-primary sell-btn' 
-                data-bs-toggle='modal' 
-                data-bs-target='#sellModal'
-                data-id='" . $row['id'] . "'
-                data-name='" . htmlspecialchars($row['product_name']) . "'
-                data-quantity='" . $row['quantity'] . "'>
-                Sell
-            </button>
+          <button type='button' class='btn btn-primary sell-btn' 
+    data-bs-toggle='modal' 
+    data-bs-target='#sellModal'
+    data-id='" . $row['id'] . "'
+    data-name='" . htmlspecialchars($row['product_name']) . "'
+    data-quantity='" . $row['quantity'] . "' 
+    data-on-sale-quantity='" . $row['on_sale_quantity'] . "'> 
+    Sell 
+</button>
+
         </td>";
                                             echo "</tr>";
                                         }
@@ -201,6 +228,9 @@ include 'admin_header.php';
                                                         Available Quantity: <span id="availableQuantityDisplay"></span>
                                                     </label>
                                                     <input type="number" class="form-control" id="sellQuantity" name="quantity" min="1" required>
+                                                    <div class="invalid-feedback" id="quantityError">
+                                                        Quantity cannot exceed available stock!
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div class="modal-footer">
@@ -208,7 +238,6 @@ include 'admin_header.php';
                                                 <button type="submit" name="sellProduct" class="btn btn-primary">Confirm Sale</button>
                                             </div>
                                         </form>
-
                                     </div>
                                 </div>
                             </div>
@@ -239,20 +268,61 @@ include 'admin_header.php';
                                         button.addEventListener('click', function() {
                                             const productId = this.dataset.id;
                                             const productName = this.dataset.name;
-                                            const availableQuantity = this.dataset.quantity;
+                                            const availableQuantity = parseInt(this.dataset.quantity);
+                                            const onSaleQuantity = parseInt(this.dataset.onSaleQuantity);
 
+                                            const sellQuantity = document.getElementById('sellQuantity');
+                                            const quantityError = document.getElementById('quantityError');
+
+                                            // Reset validation
+                                            sellQuantity.classList.remove('is-invalid');
+                                            quantityError.style.display = 'none';
+
+                                            // Set values
                                             document.getElementById('sellProductId').value = productId;
                                             document.getElementById('availableQuantityInput').value = availableQuantity;
                                             document.getElementById('availableQuantityDisplay').textContent = availableQuantity;
-                                            document.getElementById('sellQuantity').max = availableQuantity;
+                                            sellQuantity.max = availableQuantity - onSaleQuantity; // Adjust max to reflect stock minus already on sale
+                                            sellQuantity.value = Math.min(1, availableQuantity); // Set to 1 or max available if less than 1
 
-                                            // Optional: show product name if you have a placeholder
-                                            const nameElem = document.getElementById('sellProductName');
-                                            if (nameElem) {
-                                                nameElem.textContent = productName;
-                                            }
+                                            // Update product name
+                                            document.getElementById('sellProductName').textContent = productName;
+
+                                            // Add real-time validation
+                                            sellQuantity.addEventListener('input', function() {
+                                                const enteredValue = parseInt(this.value) || 0;
+                                                const maxAllowed = availableQuantity - onSaleQuantity;
+
+                                                if (enteredValue > maxAllowed) {
+                                                    this.value = maxAllowed;
+                                                    this.classList.add('is-invalid');
+                                                    quantityError.style.display = 'block';
+                                                } else if (enteredValue < 1) {
+                                                    this.value = 1;
+                                                } else {
+                                                    this.classList.remove('is-invalid');
+                                                    quantityError.style.display = 'none';
+                                                }
+                                            });
                                         });
                                     });
+
+                                    // Form submission validation
+                                    document.getElementById('sellForm').addEventListener('submit', function(e) {
+                                        const enteredQuantity = parseInt(document.getElementById('sellQuantity').value);
+                                        const availableQuantity = parseInt(document.getElementById('availableQuantityInput').value);
+                                        const onSaleQuantity = parseInt(document.getElementById('availableQuantityInput').dataset.onSaleQuantity);
+
+                                        const maxAllowed = availableQuantity - onSaleQuantity;
+
+                                        // Check if the entered quantity exceeds available stock
+                                        if (enteredQuantity > maxAllowed) {
+                                            e.preventDefault();
+                                            document.getElementById('sellQuantity').classList.add('is-invalid');
+                                            document.getElementById('quantityError').style.display = 'block';
+                                        }
+                                    });
+
 
                                 });
                             </script>

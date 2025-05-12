@@ -92,20 +92,29 @@ if ($mode === "signup") {
     $stmt->execute();
     $stmt->store_result();
 
+    // Check if the user exists
     if ($stmt->num_rows > 0) {
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['email'] = $user['email'];
+        // Bind result variables
+        $stmt->bind_result($id, $user_email, $name);
+        $stmt->fetch();
+
+        // Store user data in session variables
+        $_SESSION['user_id'] = $id;
+        $_SESSION['email'] = $user_email;
         $_SESSION['user_logged_in'] = true; // ✅ Add this
+
+        // Redirect to shop
         header("Location: shop");
         exit;
     }
+    $auth_provider = "google";
 
     // Insert new user
-    $stmt = $conn->prepare("INSERT INTO users (email, name) VALUES (?, ?)");
-    $stmt->bind_param("ss", $email, $name);
+    $stmt = $conn->prepare("INSERT INTO users (email, name, auth_provider) VALUES (?, ?, ?)");
+    $stmt->bind_param("sss", $email, $name, $auth_provider);
 
     if ($stmt->execute()) {
-        header("Location: user/dashboard");
+        header("Location: shop");
     } else {
         echo "Error inserting user: " . $stmt->error;
     }

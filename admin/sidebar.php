@@ -1,6 +1,6 @@
  <?php
     $currentPage = basename($_SERVER['PHP_SELF']);
-    $isProductDropdownActive = in_array($currentPage, ['add_product.php', 'manage_product.php', 'add_product_category.php']);
+    $isProductDropdownActive = in_array($currentPage, ['add_product.php', 'manage_product.php', 'add_product_category.php', 'add_product_brand.php']);
     $isInventoryDropdownActive = in_array($currentPage, ['restock_inventory.php', 'sample-table2.php']);
     ?>
 
@@ -69,7 +69,9 @@
                          <li class="nav-item">
                              <a class="nav-link <?= $currentPage == 'add_product_category.php' ? 'active' : '' ?>" href="add_product_category.php">Add Product Category</a>
                          </li>
-
+                         <li class="nav-item">
+                             <a class="nav-link <?= $currentPage == 'add_product_brand.php' ? 'active' : '' ?>" href="add_product_brand.php">Add Product Brand </a>
+                         </li>
                      </ul>
                  </div>
              </li>

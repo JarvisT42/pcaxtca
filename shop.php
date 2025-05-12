@@ -39,10 +39,10 @@ if (isset($_GET['sort'])) {
 // Main products query
 $productsQuery = "SELECT p.*, pc.product_category, pos.on_sale_quantity 
                 FROM products p
-                JOIN product_category pc ON p.product_category_id = pc.id
+                JOIN product_categorys pc ON p.product_category_id = pc.id
                 INNER JOIN product_on_sales pos ON p.id = pos.product_id
                 WHERE pos.on_sale_quantity > 0 
-                AND pos.sale_date >= CURDATE()
+                
                 $category_filter
                 $sort_order";
 
@@ -87,74 +87,94 @@ $totalProducts = $countStmt->get_result()->fetch_assoc()['total'];
 
         <!-- Cart Button -->
         <div class="cart-button">
-            <a href="#" id="rightSideCart"><img src="img/core-img/bag.svg" alt=""> <span>3</span></a>
+            <a href="#" id="rightSideCart"><img src="img/core-img/bag.svg" alt=""> <span><?= isset($_SESSION['cart']) ? count($_SESSION['cart']) : 0 ?></span>
+            </a>
         </div>
 
         <div class="cart-content d-flex">
 
             <!-- Cart List Area -->
             <div class="cart-list">
-                <!-- Single Cart Item -->
-                <div class="single-cart-item">
-                    <a href="#" class="product-image">
-                        <img src="img/product-img/product-1.jpg" class="cart-thumb" alt="">
-                        <!-- Cart Item Desc -->
-                        <div class="cart-item-desc">
-                            <span class="product-remove"><i class="fa fa-close" aria-hidden="true"></i></span>
-                            <span class="badge">Mango</span>
-                            <h6>Button Through Strap Mini Dress</h6>
-                            <p class="size">Size: S</p>
-                            <p class="color">Color: Red</p>
-                            <p class="price">$45.00</p>
-                        </div>
-                    </a>
-                </div>
+                <?php
+                if (isset($_SESSION['cart']) && !empty($_SESSION['cart'])) {
+                    $subtotal = 0;
+                    foreach ($_SESSION['cart'] as $id => $item) {
+                        $itemTotal = $item['price'] * $item['quantity'];
+                        $subtotal += $itemTotal;
+                ?>
+                        <!-- Single Cart Item -->
+                        <div class="single-cart-item">
+                            <a href="#" class="product-image">
+                                <img src="admin/<?= htmlspecialchars($item['image']) ?>" class="cart-thumb" alt="<?= htmlspecialchars($item['name']) ?>">
 
-                <!-- Single Cart Item -->
-                <div class="single-cart-item">
-                    <a href="#" class="product-image">
-                        <img src="img/product-img/product-2.jpg" class="cart-thumb" alt="">
-                        <!-- Cart Item Desc -->
-                        <div class="cart-item-desc">
-                            <span class="product-remove"><i class="fa fa-close" aria-hidden="true"></i></span>
-                            <span class="badge">Mango</span>
-                            <h6>Button Through Strap Mini Dress</h6>
-                            <p class="size">Size: S</p>
-                            <p class="color">Color: Red</p>
-                            <p class="price">$45.00</p>
-                        </div>
-                    </a>
-                </div>
+                                <!-- Cart Item Desc -->
+                                <div class="cart-item-desc">
 
-                <!-- Single Cart Item -->
-                <div class="single-cart-item">
-                    <a href="#" class="product-image">
-                        <img src="img/product-img/product-3.jpg" class="cart-thumb" alt="">
-                        <!-- Cart Item Desc -->
-                        <div class="cart-item-desc">
-                            <span class="product-remove"><i class="fa fa-close" aria-hidden="true"></i></span>
-                            <span class="badge">Mango</span>
-                            <h6>Button Through Strap Mini Dress</h6>
-                            <p class="size">Size: S</p>
-                            <p class="color">Color: Red</p>
-                            <p class="price">$45.00</p>
+                                    <span class="product-remove" data-id="<?= $id ?>">
+                                        <i class="fa fa-close" aria-hidden="true"></i>
+                                    </span>
+
+                                    <script>
+                                        document.querySelectorAll('.product-remove').forEach(function(el) {
+                                            el.addEventListener('click', function() {
+                                                const id = this.getAttribute('data-id');
+                                                window.location.href = 'remove_from_cart.php?id=' + id;
+                                            });
+                                        });
+                                    </script>
+
+
+                                    <span class="badge">Mango</span>
+
+                                    <h6><?= htmlspecialchars($item['name']) ?></h6>
+                                    <p class="size">Size: S</p>
+                                    <p class="size">Quantity: <?= $item['quantity'] ?></p>
+                                    <p class="color">Color: Red</p>
+                                    <p class="price">$<?= number_format($item['price'], 2) ?></p>
+                                </div>
+                            </a>
                         </div>
-                    </a>
-                </div>
+                <?php
+                    }
+                } else {
+                    echo '<p class="p-3">Your cart is empty</p>';
+                }
+                ?>
             </div>
+
+
 
             <!-- Cart Summary -->
             <div class="cart-amount-summary">
 
                 <h2>Summary</h2>
                 <ul class="summary-table">
-                    <li><span>subtotal:</span> <span>$274.00</span></li>
-                    <li><span>delivery:</span> <span>Free</span></li>
-                    <li><span>discount:</span> <span>-15%</span></li>
-                    <li><span>total:</span> <span>$232.00</span></li>
+
+                    <?php
+                    $subtotal = 0; // Set default
+                    $discount = 0;
+                    $delivery = 0;
+
+                    // If cart is not empty, calculate subtotal
+                    if (isset($_SESSION['cart']) && !empty($_SESSION['cart'])) {
+                        foreach ($_SESSION['cart'] as $item) {
+                            $subtotal += $item['price'] * $item['quantity'];
+                        }
+                    }
+
+                    $total = $subtotal - $discount + $delivery;
+                    ?>
+
+                    <li><span>subtotal:</span> <span>$<?= isset($subtotal) ? number_format($subtotal, 2) : '0.00' ?></span></li>
+                    <li><span>delivery:</span> <span><?= $delivery === 0 ? 'Free' : '$' . number_format($delivery, 2) ?></span></li>
+                    <li><span>discount:</span> <span>-$<?= number_format($discount, 2) ?></span></li>
+                    <li><span>total:</span> <span>$<?= isset($total) ? number_format($total, 2) : '0.00' ?></span></li>
+
+
+
                 </ul>
                 <div class="checkout-btn mt-100">
-                    <a href="checkout.html" class="btn essence-btn">check out</a>
+                    <a href="checkout.php" class="btn essence-btn">check out</a>
                 </div>
             </div>
         </div>
@@ -188,7 +208,7 @@ $totalProducts = $countStmt->get_result()->fetch_assoc()['total'];
                                 <ul>
                                     <li><a href="?category=all">All Categories</a></li>
                                     <?php
-                                    $categories = $conn->query("SELECT id, product_category FROM product_category");
+                                    $categories = $conn->query("SELECT id, product_category FROM product_categorys");
                                     while ($category = $categories->fetch_assoc()) {
                                         echo '<li><a href="?category=' . $category['id'] . '">'
                                             . htmlspecialchars($category['product_category']) . '</a></li>';
@@ -240,9 +260,11 @@ $totalProducts = $countStmt->get_result()->fetch_assoc()['total'];
                                             <div class="single-product-wrapper position-relative shadow-sm rounded overflow-hidden bg-white"
                                                 style="transition: all 0.3s ease; cursor: pointer;">
 
-                                                <div class="product-img position-relative overflow-hidden">
+                                                <!-- Fixed size image container -->
+                                                <div class="product-img position-relative overflow-hidden"
+                                                    style="aspect-ratio: 1/1; height: 300px;"> <!-- Adjust height as needed -->
                                                     <img src="<?= htmlspecialchars('admin/' . $product['image_path']) ?>"
-                                                        class="img-fluid w-100"
+                                                        class="img-fluid w-100 h-100 object-fit-cover"
                                                         alt="<?= htmlspecialchars($product['product_name']) ?>"
                                                         style="transition: transform 0.3s ease;">
 
@@ -252,7 +274,9 @@ $totalProducts = $countStmt->get_result()->fetch_assoc()['total'];
                                                         </div>
                                                     <?php endif; ?>
 
-                                                    <div class="hover-overlay position-absolute top-0 start-0 w-100 h-100 bg-dark opacity-0"
+                                                    <!-- Remove this element completely -->
+                                                    <!-- Change bg-dark to another color class -->
+                                                    <div class="hover-overlay position-absolute top-0 start-0 w-100 h-100  opacity-0"
                                                         style="transition: opacity 0.3s ease;"></div>
                                                 </div>
 
@@ -275,6 +299,21 @@ $totalProducts = $countStmt->get_result()->fetch_assoc()['total'];
                                             </div>
                                         </a>
                                     </div>
+                                    <style>
+                                        .product-img {
+                                            position: relative;
+                                            overflow: hidden;
+                                        }
+
+                                        .product-img img {
+                                            object-fit: cover;
+                                            width: 100%;
+                                            height: 100%;
+                                            position: absolute;
+                                            top: 0;
+                                            left: 0;
+                                        }
+                                    </style>
                                 <?php endwhile; ?>
                             <?php else: ?>
                                 <div class="col-12">

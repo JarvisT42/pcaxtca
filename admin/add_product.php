@@ -13,65 +13,69 @@ $success = '';
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
     $product_name = htmlspecialchars($_POST['product_name']);
     $category = htmlspecialchars($_POST['category']);
+    $brand = htmlspecialchars($_POST['brand']);
     $description = htmlspecialchars($_POST['description']);
     $price = floatval($_POST['price']);
     $sale_price = floatval($_POST['sale_price']);
-
     $quantity = intval($_POST['quantity']);
-    $image_path = '';
 
-    // Validate inputs
-    if (empty($product_name) || empty($description) || $price <= 0 || $quantity < 0) {
-        $error = "Please fill in all required fields correctly!";
-    } else {
-        // Handle file upload
-        if (isset($_FILES['image'])) {
-            $target_dir = "uploads/";
-            if (!is_dir($target_dir)) {
-                mkdir($target_dir, 0755, true);
-            }
+    // Initialize image paths
+    $image_path = $image_path2 = $image_path3 = '';
 
-            $file_name = basename($_FILES["image"]["name"]);
-            $target_file = $target_dir . uniqid() . '_' . $file_name;
-            $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
+    // Handle file uploads without validation
+    $target_dir = "uploads/";
+    if (!is_dir($target_dir)) {
+        mkdir($target_dir, 0755, true);
+    }
 
-            // Validate image
-            $check = getimagesize($_FILES["image"]["tmp_name"]);
-            if ($check === false) {
-                $error = "File is not an image.";
-            } elseif ($_FILES["image"]["size"] > 500000) {
-                $error = "Sorry, your file is too large.";
-            } elseif (!in_array($imageFileType, ['jpg', 'png', 'jpeg', 'gif'])) {
-                $error = "Only JPG, JPEG, PNG & GIF files are allowed.";
-            } elseif (move_uploaded_file($_FILES["image"]["tmp_name"], $target_file)) {
-                $image_path = $target_file;
-            } else {
-                $error = "Sorry, there was an error uploading your file.";
-            }
-        }
+    // Process first image
+    if (!empty($_FILES['image']['name'])) {
+        $temp_name = $_FILES['image']['tmp_name'];
+        $file_name = uniqid() . '_' . $_FILES['image']['name'];
+        move_uploaded_file($temp_name, $target_dir . $file_name);
+        $image_path = $target_dir . $file_name;
+    }
 
-        if (empty($error)) {
-            try {
-                // Insert into database using prepared statement
-                $stmt =  $conn->prepare("INSERT INTO products 
-                    (product_name, 	product_category_id, description, price, sale_price, quantity, image_path) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?)");
+    // Process second image
+    if (!empty($_FILES['image2']['name'])) {
+        $temp_name = $_FILES['image2']['tmp_name'];
+        $file_name = uniqid() . '_' . $_FILES['image2']['name'];
+        move_uploaded_file($temp_name, $target_dir . $file_name);
+        $image_path2 = $target_dir . $file_name;
+    }
 
-                $stmt->execute([
-                    $product_name,
-                    $category,
-                    $description,
-                    $price,
-                    $sale_price,
-                    $quantity,
-                    $image_path
-                ]);
+    // Process third image
+    if (!empty($_FILES['image3']['name'])) {
+        $temp_name = $_FILES['image3']['tmp_name'];
+        $file_name = uniqid() . '_' . $_FILES['image3']['name'];
+        move_uploaded_file($temp_name, $target_dir . $file_name);
+        $image_path3 = $target_dir . $file_name;
+    }
 
-                $success = "Product added successfully!";
-            } catch (PDOException $e) {
-                $error = "Database error: " . $e->getMessage();
-            }
-        }
+    // Insert into database
+    try {
+        $stmt = $conn->prepare("INSERT INTO products 
+            (product_name, product_category_id, product_brand_id, description, 
+             price, sale_price, quantity, image_path, image_path2, image_path3)     
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+        $stmt->execute([
+            $product_name,
+            $category,
+            $brand,
+            $description,
+            $price,
+            $sale_price,
+            $quantity,
+            $image_path,
+            $image_path2,
+            $image_path3
+        ]);
+
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit();
+    } catch (PDOException $e) {
+        $error = "Database error: " . $e->getMessage();
     }
 }
 ?>
@@ -116,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
                                         <option value="" disabled selected>Select a category</option>
 
                                         <?php
-                                        $result = $conn->query("SELECT id, product_category FROM product_category");
+                                        $result = $conn->query("SELECT id, product_category FROM product_categorys");
 
                                         if ($result->num_rows > 0) {
                                             while ($row = $result->fetch_assoc()) {
@@ -127,6 +131,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
 
                                     </select>
                                 </div>
+
+                                <div class="mb-3">
+                                    <label for="brand" class="form-label">Brand</label>
+                                    <select name="brand" id="brand" class="form-select" required>
+                                        <option value="" disabled selected>Select a brand</option>
+
+                                        <?php
+                                        $result = $conn->query("SELECT id, product_brand FROM product_brands");
+
+                                        if ($result->num_rows > 0) {
+                                            while ($row = $result->fetch_assoc()) {
+                                                echo '<option value="' . htmlspecialchars($row['id']) . '">' . htmlspecialchars($row['product_brand']) . '</option>';
+                                            }
+                                        }
+                                        ?>
+                                    </select>
+                                </div>
+
 
 
                                 <div class="mb-3">
@@ -156,12 +178,79 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
 
                                 <div class="mb-3">
                                     <label for="image" class="form-label">Product Image</label>
-                                    <input type="file" name="image" id="image" class="form-control"
-                                        accept="image/*" required>
+                                    <input type="file" name="image" id="image" class="form-control" accept="image/jpeg, image/png" required>
+                                    <div id="imageError" class="invalid-feedback"></div>
+
+                                    <label for="image2" class="form-label">Product Image2</label>
+                                    <input type="file" name="image2" id="image2" class="form-control" accept="image/jpeg, image/png">
+                                    <div id="image2Error" class="invalid-feedback"></div>
+
+                                    <label for="image3" class="form-label">Product Image3</label>
+                                    <input type="file" name="image3" id="image3" class="form-control" accept="image/jpeg, image/png">
+                                    <div id="image3Error" class="invalid-feedback"></div>
+
                                     <small class="form-text text-muted">
-                                        Max file size: 500KB. Allowed formats: JPG, PNG, GIF
+                                        Max file size: 500KB. Allowed formats: JPG, PNG
                                     </small>
                                 </div>
+
+                                <script>
+                                    function validateImage(input, isRequired = false) {
+                                        const file = input.files[0];
+                                        const errorElement = document.getElementById(input.id + 'Error');
+                                        const allowedTypes = ['image/jpeg', 'image/png'];
+                                        const maxSize = 500 * 1024; // 500KB
+
+                                        if (file) {
+                                            if (!allowedTypes.includes(file.type)) {
+                                                errorElement.textContent = 'Only JPG or PNG files are allowed.';
+                                                input.classList.add('is-invalid');
+                                                return false;
+                                            }
+
+                                            if (file.size > maxSize) {
+                                                errorElement.textContent = 'File size must be less than 500KB.';
+                                                input.classList.add('is-invalid');
+                                                return false;
+                                            }
+
+                                            errorElement.textContent = '';
+                                            input.classList.remove('is-invalid');
+                                            return true;
+                                        } else if (isRequired) {
+                                            errorElement.textContent = 'This field is required.';
+                                            input.classList.add('is-invalid');
+                                            return false;
+                                        } else {
+                                            errorElement.textContent = '';
+                                            input.classList.remove('is-invalid');
+                                            return true;
+                                        }
+                                    }
+
+                                    document.querySelector('form').addEventListener('submit', function(e) {
+                                        const image1 = document.getElementById('image');
+                                        const image2 = document.getElementById('image2');
+                                        const image3 = document.getElementById('image3');
+
+                                        const valid1 = validateImage(image1, true); // Required
+                                        const valid2 = validateImage(image2); // Optional
+                                        const valid3 = validateImage(image3); // Optional
+
+                                        if (!valid1 || !valid2 || !valid3) {
+                                            e.preventDefault();
+                                        }
+                                    });
+
+                                    // Validate on change
+                                    ['image', 'image2', 'image3'].forEach(id => {
+                                        const input = document.getElementById(id);
+                                        input.addEventListener('change', () => {
+                                            validateImage(input, id === 'image');
+                                        });
+                                    });
+                                </script>
+
 
                                 <button type="submit" name="submit" class="btn btn-primary">
                                     Add Product
