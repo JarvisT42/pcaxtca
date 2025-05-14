@@ -20,8 +20,11 @@ if ($is_local) {
     }
 }
 
+if (session_status() == PHP_SESSION_NONE) {
+    session_start(); // Start the session if it is not started
+}
 
-session_start(); // Make sure session is started
+
 $is_logged_in = isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true;
 ?>
 

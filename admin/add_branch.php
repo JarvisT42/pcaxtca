@@ -7,11 +7,12 @@ error_reporting(E_ALL);
 include '../connect/connection.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
-    $product_category = htmlspecialchars($_POST['product_name']);
+    $store_branch = htmlspecialchars($_POST['store_branch']);
+    $store_location = htmlspecialchars($_POST['store_location']);
 
-    $stmt = $conn->prepare("INSERT INTO product_categorys (product_category) VALUES (?)");
+    $stmt = $conn->prepare("INSERT INTO pm_pickup_store (store_branch, store_location) VALUES (?,?)");
     if ($stmt) {
-        $stmt->bind_param("s", $product_category);
+        $stmt->bind_param("ss", $store_branch, $store_location);
         if ($stmt->execute()) {
             $stmt->close();
             header("Location: " . $_SERVER['PHP_SELF'] . "?added_success=1");
@@ -23,7 +24,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
     } else {
         $error = "Failed to prepare statement.";
     }
+} else if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete'])) {
+    $id = intval($_POST['id']);
+    $stmt = $conn->prepare("DELETE FROM pm_pickup_store WHERE id = ?");
+    $stmt->bind_param("i", $id);
+
+    if ($stmt->execute()) {
+        header("Location: " . $_SERVER['PHP_SELF'] . "?delete_success=1");
+    } else {
+        echo "Error deleting record.";
+    }
+
+    $stmt->close();
+    $conn->close();
 }
+
 ?>
 
 
@@ -42,12 +57,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
         <div class="container-fluid py-4">
             <div class="row">
                 <div class="col-12">
+
                     <?php if (isset($_GET['added_success']) && $_GET['added_success'] == 1): ?>
-                        <div class="alert alert-success alert-dismissible fade show" role="alert" id="successAlert">
+                        <div class="alert alert-success alert-dismissible fade show auto-dismiss" role="alert">
                             Product category added successfully!
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     <?php endif; ?>
+
+                    <?php if (isset($_GET['delete_success']) && $_GET['delete_success'] == 1): ?>
+                        <div class="alert alert-danger alert-dismissible fade show auto-dismiss" role="alert">
+
+                            <div>Pickup store was successfully deleted.</div>
+                            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    <?php endif; ?>
+
+
+
 
                     <?php if (!empty($error)): ?>
                         <div class="alert alert-danger alert-dismissible fade show" role="alert" id="errorAlert">
@@ -69,10 +96,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
 
                             <form action="" method="POST" enctype="multipart/form-data">
                                 <div class="mb-3">
-                                    <label for="product_name" class="form-label">Product Category</label>
-                                    <input type="text" name="product_name" id="product_name" class="form-control" required>
+                                    <label for="store_branch" class="form-label">Branch</label>
+                                    <input type="text" name="store_branch" id="store_branch" class="form-control" required>
                                 </div>
-
+                                <div class="mb-3">
+                                    <label for="store_location" class="form-label">Location</label>
+                                    <input type="text" name="store_location" id="store_location" class="form-control" required>
+                                </div>
                                 <button type="submit" name="submit" class="btn btn-primary">
                                     Add Category
                                 </button>
@@ -86,34 +116,53 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
 
                         <div class="card-body p-4">
 
+
+                            form
+
                             <table id="myTable" class="display">
                                 <thead>
                                     <tr>
                                         <th>ID</th>
-                                        <th>category</th>
+                                        <th>branch</th>
                                         <th>date created</th>
+                                        <th>location</th>
+
+                                        <th>action</th>
 
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php
                                     // 1. Create SQL query
-                                    $sql = "SELECT * FROM product_categorys";
+                                    $sql = "SELECT * FROM pm_pickup_store";
 
                                     // 2. Execute the query
                                     $result = $conn->query($sql);
 
                                     // 3. Check and loop through results
                                     if ($result && $result->num_rows > 0) {
+                                        $i = 1; // Initialize row number
+
                                         while ($row = $result->fetch_assoc()) {
-                                            echo "<tr>";
-                                            echo "<td>" . htmlspecialchars($row["id"]) . "</td>";
-                                            echo "<td>" . htmlspecialchars($row["product_category"]) . "</td>";
+                                            echo "<td>" . $i++ . "</td>"; // Show row number instead of ID
+                                            echo "<td>" . htmlspecialchars($row["store_branch"]) . "</td>";
+                                            echo "<td>" . htmlspecialchars($row["store_location"]) . "</td>";
+
                                             echo "<td>" . htmlspecialchars($row["created_at"]) . "</td>";
+                                            echo "<td>
+                        <form method='POST' action='' onsubmit='return confirm(\"Are you sure you want to delete this entry?\")'>
+                            <input type='hidden' name='id' value='" . htmlspecialchars($row["id"]) . "'>
+                            <button type='submit' name='delete' class='btn btn-danger btn-sm'>Delete</button>
+                        </form>
+                      </td>";
                                             echo "</tr>";
                                         }
                                     } else {
-                                        echo "<tr><td colspan='2'>No categories found.</td></tr>";
+                                        echo "<tr>
+                <td colspan='3'>No pickup stores found.</td>
+                <td style='display:none'></td> <!-- Hidden columns to match count -->
+                <td style='display:none'></td>
+            </tr>";
                                     }
 
                                     // 4. Close the connection
@@ -129,8 +178,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
         </div>
 
     </main>
-
-    <!--   Core JS Files   -->
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 
     <!-- Load DataTables JS (via CDN) -->
@@ -142,6 +189,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
             $('#myTable').DataTable(); // Initialize DataTable on the table
         });
     </script>
+    <!--   Core JS Files   -->
+
 </body>
 
 <?php include 'admin_footer.php'; ?>

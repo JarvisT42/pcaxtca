@@ -344,42 +344,69 @@
 
                              <!-- Payment Method Section -->
                              <div id="payment-methods" role="tablist" class="mb-4">
+                                 <!-- PayPal -->
                                  <div class="card">
                                      <div class="card-header" role="tab">
                                          <h6 class="mb-0">
                                              <div class="custom-control custom-radio">
-                                                 <input type="radio" class="custom-control-input" id="paypal" name="paymentMethod" value="paypal">
+                                                 <input type="radio" class="custom-control-input" id="paypal" name="paymentMethod" value="paypal" data-toggle="collapse" data-target="#paypal-content">
                                                  <label class="custom-control-label" for="paypal">
-                                                     <i class=" mr-3"></i>Paypal
+                                                     <i class="mr-3"></i>Paypal
                                                  </label>
                                              </div>
                                          </h6>
                                      </div>
                                      <div id="paypal-content" class="collapse" data-parent="#payment-methods">
                                          <div class="card-body">
-                                             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin pharetra tempor so dales. Phasellus sagittis auctor gravida.</p>
+                                             <p>Pay securely using your PayPal account.</p>
                                          </div>
                                      </div>
                                  </div>
 
+                                 <!-- Cash on Delivery -->
                                  <div class="card">
                                      <div class="card-header" role="tab">
                                          <h6 class="mb-0">
                                              <div class="custom-control custom-radio">
-                                                 <input type="radio" class="custom-control-input" id="cod" name="paymentMethod" value="cod">
+                                                 <input type="radio" class="custom-control-input" id="cod" name="paymentMethod" value="cod" data-toggle="collapse" data-target="#cod-content">
                                                  <label class="custom-control-label" for="cod">
-                                                     <i class=" mr-3"></i>Cash on Delivery
+                                                     <i class="mr-3"></i>Cash on Delivery
                                                  </label>
                                              </div>
                                          </h6>
                                      </div>
                                      <div id="cod-content" class="collapse" data-parent="#payment-methods">
                                          <div class="card-body">
-                                             <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Explicabo quis in veritatis officia inventore, tempore provident dignissimos.</p>
+                                             <p>Pay with cash when your order is delivered.</p>
+                                         </div>
+                                     </div>
+                                 </div>
+
+                                 <!-- Pick Up at Store -->
+                                 <div class="card">
+                                     <div class="card-header" role="tab">
+                                         <h6 class="mb-0">
+                                             <div class="custom-control custom-radio">
+                                                 <input type="radio" class="custom-control-input" id="pickup" name="paymentMethod" value="pickup" data-toggle="collapse" data-target="#pickup-content">
+                                                 <label class="custom-control-label" for="pickup">
+                                                     <i class="mr-3"></i>Pick Up at Store
+                                                 </label>
+                                             </div>
+                                         </h6>
+                                     </div>
+                                     <div id="pickup-content" class="collapse" data-parent="#payment-methods">
+                                         <div class="card-body">
+                                             <label for="branch-select" class="form-label">Select a Branch:</label>
+                                             <select id="branch-select" name="branch" class="form-select">
+                                                 <option value="alabel">Alabel</option>
+                                                 <option value="koronadal">Koronadal</option>
+                                                 <option value="gensan">General Santos</option>
+                                             </select>
                                          </div>
                                      </div>
                                  </div>
                              </div>
+
 
                              <button type="submit" name="submit" class="btn essence-btn btn-block">
                                  Place Order

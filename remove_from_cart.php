@@ -1,12 +1,17 @@
 <?php
+include 'connect/connection.php';
+
 session_start();
 
-if (isset($_GET['id'])) {
-    $product_id = intval($_GET['id']);
-    if (isset($_SESSION['cart'][$product_id])) {
-        unset($_SESSION['cart'][$product_id]);
-    }
-}
+$product_id = intval($_GET['id']);
+$user_id = $_SESSION['user_id'];
 
-header('Location: ' . $_SERVER['HTTP_REFERER']);
+// Delete from database
+$stmt = $conn->prepare("DELETE FROM shopping_cart WHERE user_id = ? AND product_id = ?");
+$stmt->bind_param("ii", $user_id, $product_id);
+$stmt->execute();
+$stmt->close();
+
+// After processing the cart removal
+header("Location: single-product-details.php?id=" . urlencode($product_id));
 exit;

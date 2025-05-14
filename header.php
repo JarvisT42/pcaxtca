@@ -91,7 +91,7 @@
              <div class="cart-area">
                  <a href="#" id="essenceCartBtn">
                      <img src="img/core-img/bag.svg" alt="Cart">
-                     <span><?= isset($_SESSION['cart']) ? count($_SESSION['cart']) : 0 ?></span>
+                     <span><?= count($cartItems) ?></span>
                  </a>
              </div>
          </div>

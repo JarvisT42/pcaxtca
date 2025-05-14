@@ -7,11 +7,11 @@ error_reporting(E_ALL);
 include '../connect/connection.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
-    $product_category = htmlspecialchars($_POST['product_name']);
+    $store_branch = htmlspecialchars($_POST['store_branch']);
 
-    $stmt = $conn->prepare("INSERT INTO product_categorys (product_category) VALUES (?)");
+    $stmt = $conn->prepare("INSERT INTO pm_pickup_store (storebranch) VALUES (?)");
     if ($stmt) {
-        $stmt->bind_param("s", $product_category);
+        $stmt->bind_param("s", $store_branch);
         if ($stmt->execute()) {
             $stmt->close();
             header("Location: " . $_SERVER['PHP_SELF'] . "?added_success=1");
@@ -90,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
                                 <thead>
                                     <tr>
                                         <th>ID</th>
-                                        <th>category</th>
+                                        <th>branch</th>
                                         <th>date created</th>
 
                                     </tr>
@@ -98,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
                                 <tbody>
                                     <?php
                                     // 1. Create SQL query
-                                    $sql = "SELECT * FROM product_categorys";
+                                    $sql = "SELECT * FROM pm_pickup_store";
 
                                     // 2. Execute the query
                                     $result = $conn->query($sql);
@@ -108,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
                                         while ($row = $result->fetch_assoc()) {
                                             echo "<tr>";
                                             echo "<td>" . htmlspecialchars($row["id"]) . "</td>";
-                                            echo "<td>" . htmlspecialchars($row["product_category"]) . "</td>";
+                                            echo "<td>" . htmlspecialchars($row["storebranch"]) . "</td>";
                                             echo "<td>" . htmlspecialchars($row["created_at"]) . "</td>";
                                             echo "</tr>";
                                         }

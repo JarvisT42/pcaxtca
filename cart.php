@@ -162,66 +162,7 @@ include 'connect/connection.php';
                     </div>
                 </div>
                 <style>
-                    .cart-table table {
-                        width: 100%;
-                        border-collapse: collapse;
-                    }
-
-                    .cart-table th {
-                        border-bottom: 2px solid #eee;
-                        padding: 15px;
-                        text-align: left;
-                    }
-
-                    .cart-table td {
-                        padding: 15px;
-                        border-bottom: 1px solid #eee;
-                        vertical-align: middle;
-                    }
-
-                    .cart_product_img img {
-                        width: 80px;
-                        margin-right: 15px;
-                    }
-
-                    .quantity {
-                        display: flex;
-                        align-items: center;
-                    }
-
-                    .qty-minus,
-                    .qty-plus {
-                        cursor: pointer;
-                        padding: 5px 10px;
-                        border: 1px solid #ddd;
-                    }
-
-                    .qty-text {
-                        width: 50px;
-                        text-align: center;
-                        border: 1px solid #ddd;
-                        border-left: none;
-                        border-right: none;
-                        padding: 5px;
-                    }
-
-                    .cart-summary {
-                        background: #f8f9fa;
-                        padding: 30px;
-                        border-radius: 5px;
-                    }
-
-                    .summary-table li {
-                        display: flex;
-                        justify-content: space-between;
-                        padding: 10px 0;
-                        border-bottom: 1px solid #eee;
-                    }
-
-                    .summary-table li:last-child {
-                        border-bottom: none;
-                        font-weight: bold;
-                    }
+                 
                 </style>
 
                 <!-- Cart Summary -->

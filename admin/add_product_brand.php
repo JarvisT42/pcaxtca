@@ -71,10 +71,64 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
                             </form>
                         </div>
                     </div>
+
+                    <div class="card mb-4">
+
+                        <div class="card-body p-4">
+
+                            <table id="myTable" class="display">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Brand</th>
+                                        <th>date created</th>
+
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    // 1. Create SQL query
+                                    $sql = "SELECT * FROM product_brands";
+
+                                    // 2. Execute the query
+                                    $result = $conn->query($sql);
+
+                                    // 3. Check and loop through results
+                                    if ($result && $result->num_rows > 0) {
+                                        while ($row = $result->fetch_assoc()) {
+                                            echo "<tr>";
+                                            echo "<td>" . htmlspecialchars($row["id"]) . "</td>";
+                                            echo "<td>" . htmlspecialchars($row["product_brand"]) . "</td>";
+                                            echo "<td>" . htmlspecialchars($row["created_at"]) . "</td>";
+                                            echo "</tr>";
+                                        }
+                                    } else {
+                                        echo "<tr><td colspan='2'>No categories found.</td></tr>";
+                                    }
+
+                                    // 4. Close the connection
+                                    $conn->close();
+                                    ?>
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </main>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+
+    <!-- Load DataTables JS (via CDN) -->
+    <script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
+
+    <!-- Initialize DataTable -->
+    <script>
+        $(document).ready(function() {
+            $('#myTable').DataTable(); // Initialize DataTable on the table
+        });
+    </script>
 </body>
 
 <?php include 'admin_footer.php'; ?>
