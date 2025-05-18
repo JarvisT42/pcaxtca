@@ -5,18 +5,27 @@ $is_local = (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false || strpos($_SE
 // Echo environment status
 
 // Set database connection settings based on environment
+// if ($is_local) {
+//   $servername = "srv1865.hstgr.io";
+// } else {
+//   $servername = "localhost";
+// }
+
 if ($is_local) {
-  $servername = "srv1865.hstgr.io";
+  $servername = "localhost";
 } else {
   $servername = "localhost";
 }
 
 
-
 // Production environment settings
 
-$username = "u756490121_userpcaxtca";
-$password = "?7AdT?s!+*?S";
+// $username = "u756490121_userpcaxtca";
+// $password = "?7AdT?s!+*?S";
+// $dbname = "u756490121_pcaxtca";
+
+$username = "root";
+$password = "";
 $dbname = "u756490121_pcaxtca";
 
 // Create database connection

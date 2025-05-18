@@ -1,4 +1,5 @@
 <?php
+
 include 'connect/connection.php';
 
 
@@ -8,330 +9,445 @@ include 'connect/connection.php';
 
 <!DOCTYPE html>
 <html lang="en">
+<?php include 'head.php'; ?>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="description" content="">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <!-- The above 4 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-
-    <!-- Title  -->
-    <title>Essence - Fashion Ecommerce Template</title>
-
-    <!-- Favicon  -->
-    <link rel="icon" href="img/core-img/favicon.ico">
-
-    <!-- Core Style CSS -->
-    <link rel="stylesheet" href="css/core-style.css">
-    <link rel="stylesheet" href="style.css">
-
-</head>
 
 <body>
-    <!-- ##### Header Area Start ##### -->
 
-    <!-- ##### Header Area End ##### -->
-
-    <!-- ##### Right Side Cart Area ##### -->
-    <div class="cart-bg-overlay"></div>
-
-    <div class="right-side-cart-area">
-
-        <!-- Cart Button -->
-        <div class="cart-button">
-            <a href="#" id="rightSideCart"><img src="img/core-img/bag.svg" alt=""> <span>3</span></a>
-        </div>
-
-        <div class="cart-content d-flex">
-
-            <!-- Cart List Area -->
-            <div class="cart-list">
-                <!-- Single Cart Item -->
-                <div class="single-cart-item">
-                    <a href="#" class="product-image">
-                        <img src="img/product-img/product-1.jpg" class="cart-thumb" alt="">
-                        <!-- Cart Item Desc -->
-                        <div class="cart-item-desc">
-                            <span class="product-remove"><i class="fa fa-close" aria-hidden="true"></i></span>
-                            <span class="badge">Mango</span>
-                            <h6>Button Through Strap Mini Dress</h6>
-                            <p class="size">Size: S</p>
-                            <p class="color">Color: Red</p>
-                            <p class="price">$45.00</p>
-                        </div>
-                    </a>
-                </div>
+    <?php include 'header.php'; ?>
 
 
-            </div>
-
-            <!-- Cart Summary -->
-            <div class="cart-amount-summary">
-
-                <h2>Summary</h2>
-                <ul class="summary-table">
-                    <li><span>subtotal:</span> <span>$274.00</span></li>
-                    <li><span>delivery:</span> <span>Free</span></li>
-                    <li><span>discount:</span> <span>-15%</span></li>
-                    <li><span>total:</span> <span>$232.00</span></li>
-                </ul>
-                <div class="checkout-btn mt-100">
-                    <a href="checkout.html" class="btn essence-btn">check out</a>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- ##### Right Side Cart End ##### -->
-
-    <!-- ##### Breadcumb Area Start ##### -->
-    <div class="breadcumb_area bg-img" style="background-image: url(img/bg-img/breadcumb.jpg);">
-        <div class="container h-100">
-            <div class="row h-100 align-items-center">
-                <div class="col-12">
-                    <div class="page-title text-center">
-                        <h2>dresses</h2>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
     <!-- ##### Breadcumb Area End ##### -->
 
     <!-- ##### Shop Grid Area Start ##### -->
+
+    <div class="search-area">
+        <form action="" method="get">
+            <input type="search" name="search" id="headerSearch"
+                placeholder="Type for search"
+                value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
+
+            <!-- Preserve all existing parameters except search and page -->
+            <?php
+            foreach ($_GET as $key => $value) {
+                if ($key === 'search' || $key === 'page') continue;
+                if (is_array($value)) {
+                    foreach ($value as $val) {
+                        echo '<input type="hidden" name="' . htmlspecialchars($key) . '[]" value="' . htmlspecialchars($val) . '">';
+                    }
+                } else {
+                    echo '<input type="hidden" name="' . htmlspecialchars($key) . '" value="' . htmlspecialchars($value) . '">';
+                }
+            }
+            ?>
+
+            <button type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
+        </form>
+    </div>
+
+
+    <?php include 'connect/connection.php'; ?>
+
     <section class="shop_grid_area section-padding-80">
         <div class="container">
             <div class="row">
-                <!-- Cart Items -->
-                <div class="col-12 col-lg-8">
-                    <div class="cart-title mt-50">
-                        <h2>Shopping Cart</h2>
-                    </div>
+                <div class="col-12 col-md-4 col-lg-3">
+                    <div class="shop_sidebar_area">
+                        <form method="GET" action="">
+                            <!-- Categories Filter -->
+                            <input type="hidden" name="search" value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
 
-                    <div class="cart-table clearfix">
-                        <table class="table table-responsive">
-                            <thead>
-                                <tr>
-                                    <th>Product</th>
-                                    <th>Price</th>
-                                    <th>Quantity</th>
-                                    <th>Total</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Cart Item -->
-                                <tr>
-                                    <td class="cart_product_img">
-                                        <a href="#"><img src="img/product-img/product-1.jpg" alt="Product"></a>
-                                        <h5>Product Name 1</h5>
-                                    </td>
-                                    <td class="price"><span>$49.99</span></td>
-                                    <td class="qty">
-                                        <div class="quantity">
-                                            <span class="qty-minus" onclick="changeQty(this, -1)">
-                                                <i class="fa fa-minus" aria-hidden="true"></i>
-                                            </span>
-                                            <input type="number" class="qty-text" step="1" min="1" max="99" name="quantity" value="1">
-                                            <span class="qty-plus" onclick="changeQty(this, 1)">
-                                                <i class="fa fa-plus" aria-hidden="true"></i>
-                                            </span>
+
+                            <div class="widget catagory mb-50">
+                                <h6 class="widget-title mb-30">Categories</h6>
+                                <div class="catagories-menu">
+                                    <ul class="sub-menu">
+                                        <?php
+                                        $selectedCategory = isset($_GET['category']) ? $_GET['category'] : '';
+                                        ?>
+                                        <!-- "All" option -->
+                                        <li>
+                                            <label>
+                                                <input type="radio" name="category" value=""
+                                                    <?= $selectedCategory === '' ? 'checked' : '' ?> class="category-checkbox">
+                                                All
+                                            </label>
+                                        </li>
+
+                                        <?php
+                                        $categories = mysqli_query($conn, "SELECT * FROM product_categorys");
+                                        while ($category = mysqli_fetch_assoc($categories)):
+                                            $isChecked = $selectedCategory == $category['id'];
+                                        ?>
+                                            <li>
+                                                <label>
+                                                    <input type="radio" name="category" value="<?= $category['id'] ?>"
+                                                        <?= $isChecked ? 'checked' : '' ?> class="category-checkbox">
+                                                    <?= htmlspecialchars($category['product_category']) ?>
+                                                </label>
+                                            </li>
+                                        <?php endwhile; ?>
+                                    </ul>
+                                </div>
+                            </div>
+
+
+                            <!-- Brands Filter -->
+                            <div class="widget brands mb-50">
+                                <h6 class="widget-title mb-30">Brands</h6>
+                                <div class="brands-menu">
+                                    <ul class="sub-menu" id="brands-list">
+                                        <?php
+                                        // Load initially selected brands
+                                        if (isset($_GET['category'])) {
+                                            $selectedCategory = (int)$_GET['category'];
+                                            $brands = mysqli_query($conn, "SELECT * FROM product_brands WHERE product_category_id = $selectedCategory");
+                                            while ($brand = mysqli_fetch_assoc($brands)) {
+                                                $isChecked = isset($_GET['brand']) && in_array($brand['id'], $_GET['brand']);
+                                                echo '<li><label><input type="checkbox" name="brand[]" value="' . $brand['id'] . '" ' . ($isChecked ? 'checked' : '') . '> ' . htmlspecialchars($brand['product_brand']) . '</label></li>';
+                                            }
+                                        }
+                                        ?>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- Price Filter -->
+                            <div class="widget price mb-50">
+                                <h6 class="widget-title mb-30">Filter by</h6>
+                                <p class="widget-title2 mb-30">Price</p>
+
+
+
+
+
+
+
+
+                                <div class="widget-desc">
+                                    <div class="slider-range">
+
+
+                                        <?php
+                                        $price_result = mysqli_query($conn, "SELECT MIN(sale_price) AS min_price, MAX(sale_price) AS max_price FROM products");
+                                        $price_range = mysqli_fetch_assoc($price_result);
+                                        $min_price = isset($_GET['min_price']) ? (float)$_GET['min_price'] : (float)$price_range['min_price'];
+                                        $max_price = isset($_GET['max_price']) ? (float)$_GET['max_price'] : (float)$price_range['max_price'];
+                                        ?>
+
+
+                                        <div data-min="<?= $price_range['min_price'] ?>" data-max="<?= $price_range['max_price'] ?>" data-unit="$" class="slider-range-price ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all" data-value-min="<?= $min_price ?>" data-value-max="<?= $max_price ?>" data-label-result="Range:">
+                                            <div class="ui-slider-range uia-all"></div>
+                                            <span class="ui-slider-handle uiarner-all" tabindex="0"></span>
+                                            <span class="ui-slider-handlaall" tabindex="0"></span>
                                         </div>
 
-                                        <script>
-                                            function changeQty(elem, change) {
-                                                const input = elem.parentElement.querySelector('.qty-text');
-                                                let qty = parseInt(input.value);
-                                                if (!isNaN(qty)) {
-                                                    qty += change;
-                                                    if (qty >= parseInt(input.min) && qty <= parseInt(input.max)) {
-                                                        input.value = qty;
+                                        <div class="price-display">
+                                            Selected Range: $<?= number_format($min_price, 2) ?> - $<?= number_format($max_price, 2) ?>
+                                        </div>
+
+
+                                        <input type="hidden" name="min_price" id="min_price" value="<?= $min_price ?>">
+                                        <input type="hidden" name="max_price" id="max_price" value="<?= $max_price ?>">
+                                        <button type="submit" class="btn essence-btn w-100">Apply Filter</button>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+                <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.min.js"></script>
+                <script>
+                    $(function() {
+                        const slider = $('.slider-range-price');
+                        const minPrice = parseFloat(slider.data('min'));
+                        const maxPrice = parseFloat(slider.data('max'));
+
+                        slider.slider({
+                            range: true,
+                            min: minPrice,
+                            max: maxPrice,
+                            values: [
+                                parseFloat(slider.data('value-min')),
+                                parseFloat(slider.data('value-max'))
+                            ],
+                            slide: function(event, ui) {
+                                $('#min_price').val(ui.values[0].toFixed(2));
+                                $('#max_price').val(ui.values[1].toFixed(2));
+                                $('.price-display').text(
+                                    `Range: ₱${ui.values[0].toFixed(2)} - ₱${ui.values[1].toFixed(2)}`
+                                );
+                            }
+                        });
+
+                        // Initial display update
+                        $('.price-display').text(
+                            `Range: ₱${slider.slider('values', 0).toFixed(2)} - ₱${slider.slider('values', 1).toFixed(2)}`
+                        );
+                    });
+                </script>
+
+
+
+
+
+
+
+
+
+
+
+                <script>
+                    document.querySelectorAll('.category-checkbox').forEach(radio => {
+                        radio.addEventListener('change', async function() {
+                            const categoryId = this.value;
+                            const brandList = document.getElementById('brands-list');
+                            brandList.innerHTML = 'Loading...';
+
+                            try {
+                                const response = await fetch('get_brands.php', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                        category_id: categoryId
+                                    })
+                                });
+
+                                const data = await response.json();
+                                brandList.innerHTML = '';
+
+                                data.forEach(brand => {
+                                    const isChecked = <?= json_encode(isset($_GET['brand']) ? $_GET['brand'] : []) ?>.includes(brand.id.toString());
+                                    const li = document.createElement('li');
+                                    li.innerHTML = `
+                    <label>
+                        <input type="checkbox" name="brand[]" value="${brand.id}" ${isChecked ? 'checked' : ''}>
+                        ${brand.product_brand}
+                    </label>`;
+                                    brandList.appendChild(li);
+                                });
+                            } catch (error) {
+                                brandList.innerHTML = '<li>Error loading brands</li>';
+                            }
+                        });
+                    });
+                </script>
+
+
+
+
+
+
+                <div class="col-12 col-md-8 col-lg-9">
+                    <div class="shop_grid_product_area">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="product-topbar d-flex align-items-center justify-content-between">
+                                    <!-- Product Count -->
+
+
+
+                                    <div class="total-products">
+                                        <?php
+
+
+
+
+                                        ?>
+                                        <p><span><?= $total_products['total'] ?? 0 ?></span> products found</p>
+                                    </div>
+
+                                    <!-- Sorting -->
+                                    <div class="product-sorting d-flex">
+                                        <form method=" GET" action="" id="sortForm">
+                                            <?php
+                                            // Preserve all existing GET parameters
+                                            foreach ($_GET as $key => $value) {
+                                                if ($key === 'sort' || $key === 'page') continue;
+                                                if (is_array($value)) {
+                                                    foreach ($value as $val) {
+                                                        echo '<input type="hidden" name="' . htmlspecialchars($key) . '[]" value="' . htmlspecialchars($val) . '">';
                                                     }
+                                                } else {
+                                                    echo '<input type="hidden" name="' . htmlspecialchars($key) . '" value="' . htmlspecialchars($value) . '">';
                                                 }
                                             }
-                                        </script>
+                                            ?>
+                                            <select name="sort" id="sortByselect" class="form-control" onchange="this.form.submit()">
+                                                <option value="">Default Sorting</option>
+                                                <option value="price_asc" <?= isset($_GET['sort']) && $_GET['sort'] === 'price_asc' ? 'selected' : '' ?>>Price: Low to High</option>
+                                                <option value="price_desc" <?= isset($_GET['sort']) && $_GET['sort'] === 'price_desc' ? 'selected' : '' ?>>Price: High to Low</option>
+                                                <option value="name_asc" <?= isset($_GET['sort']) && $_GET['sort'] === 'name_asc' ? 'selected' : '' ?>>Name: A to Z</option>
+                                                <option value="name_desc" <?= isset($_GET['sort']) && $_GET['sort'] === 'name_desc' ? 'selected' : '' ?>>Name: Z to A</option>
+                                            </select>
+                                        </form>
+                                    </div>
 
-                                    </td>
-                                    <td class="total_price"><span>$49.99</span></td>
-                                    <td class="cart_product_remove"><a href="#"><i class="fa fa-trash-o"></i></a></td>
-                                </tr>
 
-                                <!-- Repeat other cart items -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <style>
-                    .cart-table table {
-                        width: 100%;
-                        border-collapse: collapse;
-                    }
 
-                    .cart-table th {
-                        border-bottom: 2px solid #eee;
-                        padding: 15px;
-                        text-align: left;
-                    }
+                                </div>
+                            </div>
+                        </div>
 
-                    .cart-table td {
-                        padding: 15px;
-                        border-bottom: 1px solid #eee;
-                        vertical-align: middle;
-                    }
+                        <div class="row">
+                            <?php
+                            // Initialize sorting
+                            $sort = $_GET['sort'] ?? '';
 
-                    .cart_product_img img {
-                        width: 80px;
-                        margin-right: 15px;
-                    }
+                            $selected_category = isset($_GET['category']) ? (int)$_GET['category'] : 0;
+                            $selected_brands = isset($_GET['brand']) ? array_map('intval', $_GET['brand']) : [];
+                            $min_price = isset($_GET['min_price']) ? (float)$_GET['min_price'] : 0;
+                            $max_price = isset($_GET['max_price']) ? (float)$_GET['max_price'] : 9999;
 
-                    .quantity {
-                        display: flex;
-                        align-items: center;
-                    }
+                            // Base query
+                            $search_term = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['search']) : '';
 
-                    .qty-minus,
-                    .qty-plus {
-                        cursor: pointer;
-                        padding: 5px 10px;
-                        border: 1px solid #ddd;
-                    }
+                            // Modified Product Query with Sorting
+                            $product_query = "SELECT p.*, pos.on_sale_quantity, pb.product_brand AS brand_name
+                                        FROM products p
+                                        INNER JOIN product_on_sales pos ON p.id = pos.product_id
+                                        LEFT JOIN product_brands pb ON p.product_brand_id = pb.id
+                                        WHERE p.sale_price BETWEEN $min_price AND $max_price";
 
-                    .qty-text {
-                        width: 50px;
-                        text-align: center;
-                        border: 1px solid #ddd;
-                        border-left: none;
-                        border-right: none;
-                        padding: 5px;
-                    }
+                            // Existing filter conditions
+                            if (!empty($search_term)) {
+                                $product_query .= " AND (p.product_name LIKE '%$search_term%' OR p.description LIKE '%$search_term%')";
+                            }
+                            if ($selected_category > 0) {
+                                $product_query .= " AND p.product_category_id = $selected_category";
+                            }
+                            if (!empty($selected_brands)) {
+                                $brand_ids = implode(',', $selected_brands);
+                                $product_query .= " AND p.product_brand_id IN ($brand_ids)";
+                            }
 
-                    .cart-summary {
-                        background: #f8f9fa;
-                        padding: 30px;
-                        border-radius: 5px;
-                    }
+                            // NEW: Add Sorting
+                            switch ($sort) {
+                                case 'price_asc':
+                                    $product_query .= " ORDER BY p.sale_price ASC";
+                                    break;
+                                case 'price_desc':
+                                    $product_query .= " ORDER BY p.sale_price DESC";
+                                    break;
+                                case 'name_asc':
+                                    $product_query .= " ORDER BY p.product_name ASC";
+                                    break;
+                                case 'name_desc':
+                                    $product_query .= " ORDER BY p.product_name DESC";
+                                    break;
+                                default:
+                                    // Default sorting (optional)
+                                    // $product_query .= " ORDER BY p.id DESC";
+                                    break;
+                            }
 
-                    .summary-table li {
-                        display: flex;
-                        justify-content: space-between;
-                        padding: 10px 0;
-                        border-bottom: 1px solid #eee;
-                    }
+                            $per_page = 12;
+                            $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+                            $offset = ($page - 1) * $per_page;
 
-                    .summary-table li:last-child {
-                        border-bottom: none;
-                        font-weight: bold;
-                    }
-                </style>
+                            // Pagination
+                            $product_query .= " LIMIT $per_page OFFSET $offset";
+                            $products = mysqli_query($conn, $product_query);
 
-                <!-- Cart Summary -->
-                <div class="col-12 col-lg-4">
-                    <div class="cart-summary">
-                        <h5>Cart Total</h5>
-                        <ul class="summary-table">
-                            <li><span>subtotal:</span> <span>$140.00</span></li>
-                            <li><span>tax:</span> <span>$10.00</span></li>
-                            <li><span>shipping:</span> <span>Free</span></li>
-                            <li><span>total:</span> <span>$150.00</span></li>
-                        </ul>
-                        <div class="cart-btn mt-100">
-                            <a href="#" class="btn btn-primary btn-block">Update Cart</a>
-                            <a href="checkout.html" class="btn btn-success btn-block mt-3">Checkout</a>
+                            if (mysqli_num_rows($products) > 0):
+                                while ($product = mysqli_fetch_assoc($products)):
+                            ?>
+                                    <div class="col-12 col-sm-6 col-lg-4">
+                                        <div class="single-product-wrapper">
+                                            <div class="product-img">
+                                                <img src="admin/<?= htmlspecialchars($product['image_path']) ?>" alt="<?= htmlspecialchars($product['product_name']) ?>">
+                                                <div class="product-favourite">
+                                                    <a href="#" class="favme fa fa-heart"></a>
+                                                </div>
+                                            </div>
+                                            <div class="product-description">
+                                                <span><?= htmlspecialchars($product['brand_name']) ?></span>
+                                                <a href="single-product-details.php?id=<?= $product['id'] ?>">
+                                                    <h6><?= htmlspecialchars($product['product_name']) ?></h6>
+                                                </a>
+                                                <p class="product-price">$<?= number_format($product['sale_price'], 2) ?></p>
+                                                <div class="hover-content">
+                                                    <div class="add-to-cart-btn">
+                                                        <a href="cart.php?add=<?= $product['id'] ?>" class="btn essence-btn">Add to Cart</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <style>
+                                        /* Set fixed dimensions for image container */
+                                        .product-img {
+                                            height: 300px;
+                                            /* Adjust this value as needed */
+                                            width: 100%;
+                                            overflow: hidden;
+                                            position: relative;
+                                        }
+
+                                        /* Make image fill container while maintaining aspect ratio */
+                                        .product-img img {
+                                            width: 100%;
+                                            height: 100%;
+                                            object-fit: cover;
+                                            object-position: center center;
+                                        }
+
+                                        .product-img {
+                                            aspect-ratio: 1/1;
+                                            width: 100%;
+                                            overflow: hidden;
+                                        }
+
+                                        .product-img:hover img {
+                                            transform: scale(1.1);
+                                            /* 10% zoom */
+                                        }
+                                    </style>
+
+
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <div class="col-12">
+                                    <div class="alert alert-warning">No products found matching your criteria.</div>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- Empty Cart Message (hidden by default) -->
-            <div class="row">
-                <div class="col-12">
-                    <div class="empty-cart-message text-center" style="display: none;">
-                        <h3>Your cart is empty</h3>
-                        <p>Continue shopping <a href="shop.html">here</a></p>
-                    </div>
+                    <!-- Pagination -->
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination mt-50 mb-70 justify-content-center">
+                            <?php
+                            $total_pages = ceil(($total_products['total'] ?? 0) / $per_page);
+                            for ($i = 1; $i <= $total_pages; $i++):
+                            ?>
+                                <li class="page-item <?= $i === $page ? 'active' : '' ?>">
+                                    <a class="page-link" href="?<?= http_build_query(array_merge($_GET, ['page' => $i])) ?>">
+                                        <?= $i ?>
+                                    </a>
+                                </li>
+                            <?php endfor; ?>
+                        </ul>
+                    </nav>
                 </div>
+
+                <script>
+                    // Add live sort form submission
+                    document.getElementById('sortByselect').addEventListener('change', function() {
+                        document.getElementById('sortForm').submit();
+                    });
+                </script>
             </div>
         </div>
     </section>
 
-    <!-- Include your JavaScript files here -->
-    <!-- ##### Shop Grid Area End ##### -->
+    <!-- Add jQuery and Slider Script -->
 
-    <!-- ##### Footer Area Start ##### -->
-    <footer class="footer_area clearfix">
-        <div class="container">
-            <div class="row">
-                <!-- Single Widget Area -->
-                <div class="col-12 col-md-6">
-                    <div class="single_widget_area d-flex mb-30">
-                        <!-- Logo -->
-                        <div class="footer-logo mr-50">
-                            <a href="#"><img src="img/core-img/logo2.png" alt=""></a>
-                        </div>
-                        <!-- Footer Menu -->
-                        <div class="footer_menu">
-                            <ul>
-                                <li><a href="shop.html">Shop</a></li>
-                                <li><a href="blog.html">Blog</a></li>
-                                <li><a href="contact.html">Contact</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <!-- Single Widget Area -->
-                <div class="col-12 col-md-6">
-                    <div class="single_widget_area mb-30">
-                        <ul class="footer_widget_menu">
-                            <li><a href="#">Order Status</a></li>
-
-                            <li><a href="#">Privacy Policy</a></li>
-                            <li><a href="#">Terms of Use</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row align-items-end">
-                <!-- Single Widget Area -->
-                <div class="col-12 col-md-6">
-                    <div class="single_widget_area">
-                        <div class="footer_heading mb-30">
-                            <h6>Subscribe</h6>
-                        </div>
-                        <div class="subscribtion_form">
-                            <form action="#" method="post">
-                                <input type="email" name="mail" class="mail" placeholder="Your email here">
-                                <button type="submit" class="submit"><i class="fa fa-long-arrow-right" aria-hidden="true"></i></button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-                <!-- Single Widget Area -->
-                <div class="col-12 col-md-6">
-                    <div class="single_widget_area">
-                        <div class="footer_social_area">
-                            <a href="#" data-toggle="tooltip" data-placement="top" title="Facebook"><i class="fa fa-facebook" aria-hidden="true"></i></a>
-                            <a href="#" data-toggle="tooltip" data-placement="top" title="Youtube"><i class="fa fa-youtube-play" aria-hidden="true"></i></a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row mt-5">
-                <div class="col-md-12 text-center">
-                    <p>
-                        <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
-                        Copyright &copy;<script>
-                            document.write(new Date().getFullYear());
-                        </script> All rights reserved | This template is made with <i class="fa fa-heart-o" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
-                        <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
-                    </p>
-                </div>
-            </div>
-
-        </div>
-    </footer>
-    <!-- ##### Footer Area End ##### -->
 
     <!-- jQuery (Necessary for All JavaScript Plugins) -->
     <script src="js/jquery/jquery-2.2.4.min.js"></script>

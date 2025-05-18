@@ -45,7 +45,15 @@ $is_logged_in = isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'
     <link rel="icon" href="img/core-img/favicon.ico">
 
     <!-- Core Style CSS -->
+    <link rel="stylesheet" href="bootstrap-5.3.6/css/bootstrap.min.css">
+
     <link rel="stylesheet" href="css/core-style.css">
     <link rel="stylesheet" href="style.css">
-
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.1/themes/base/jquery-ui.css">
+    <style>
+        .slider-range-price {
+            margin: 20px 0;
+            height: 10px;
+        }
+    </style>
 </head>

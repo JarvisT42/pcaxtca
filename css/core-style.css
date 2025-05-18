@@ -276,7 +276,7 @@ img {
 /* Essence Button */
 .essence-btn {
   display: inline-block;
-  min-width: 170px;
+  min-width: 180px;
   height: 50px;
   color: #ffffff;
   border: none;
@@ -1607,6 +1607,29 @@ img {
 .widget .catagories-menu .sub-menu li > a:hover {
   color: #0315ff;
 }
+
+.widget .brands-menu li > a {
+  text-transform: uppercase;
+  font-size: 12px;
+  margin-bottom: 15px;
+  display: block;
+}
+.widget .brands-menu .sub-menu {
+  margin-left: 15px;
+  margin-bottom: 15px;
+}
+.widget .brands-menu .sub-menu li > a {
+  text-transform: capitalize;
+  font-size: 14px;
+  margin-bottom: 5px;
+  display: block;
+  font-weight: 300;
+  color: #787878;
+}
+.widget .brands-menu .sub-menu li > a:hover {
+  color: #0315ff;
+}
+
 .widget.price .ui-slider-handle {
   background-color: #000000;
   border: none;
@@ -1622,7 +1645,7 @@ img {
 .widget.price .ui-slider-horizontal {
   height: 5px;
 }
-.widget.price .range-price {
+.widget.price .price-display {
   font-size: 12px;
   font-weight: 600;
   margin-top: 15px;

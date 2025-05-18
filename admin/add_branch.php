@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
             header("Location: " . $_SERVER['PHP_SELF'] . "?added_success=1");
             exit();
         } else {
-            $error = "Failed to insert category.";
+            $error = "Failed to insert branch.";
         }
         $stmt->close();
     } else {
@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
 
                     <?php if (isset($_GET['added_success']) && $_GET['added_success'] == 1): ?>
                         <div class="alert alert-success alert-dismissible fade show auto-dismiss" role="alert">
-                            Product category added successfully!
+                            Product branch added successfully!
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     <?php endif; ?>
@@ -89,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
 
                     <div class="card mb-4">
                         <div class="card-header pb-0">
-                            <h6>Add New Product Category</h6>
+                            <h6>Add New Product Branch</h6>
                         </div>
                         <div class="card-body px-4 pt-0 pb-2">
                             <!--  -->
@@ -104,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
                                     <input type="text" name="store_location" id="store_location" class="form-control" required>
                                 </div>
                                 <button type="submit" name="submit" class="btn btn-primary">
-                                    Add Category
+                                    Add Branch
                                 </button>
                             </form>
 

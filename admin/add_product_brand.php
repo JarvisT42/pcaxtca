@@ -8,10 +8,12 @@ include '../connect/connection.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
     $brand_name = htmlspecialchars($_POST['brand_name']);
+    $category = htmlspecialchars($_POST['category']);
 
-    $stmt = $conn->prepare("INSERT INTO product_brands (product_brand) VALUES (?)");
+
+    $stmt = $conn->prepare("INSERT INTO product_brands (product_brand, product_category_id) VALUES (?, ?)");
     if ($stmt) {
-        $stmt->bind_param("s", $brand_name);
+        $stmt->bind_param("si", $brand_name, $category);
         if ($stmt->execute()) {
             $stmt->close();
             header("Location: " . $_SERVER['PHP_SELF'] . "?added_success=1");
@@ -63,6 +65,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
                                 <div class="mb-3">
                                     <label for="brand_name" class="form-label">Brand Name</label>
                                     <input type="text" name="brand_name" id="brand_name" class="form-control" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="category" class="form-label">Category</label>
+                                    <select name="category" id="category" class="form-select" required>
+                                        <option value="" disabled selected>Select a category</option>
+
+                                        <?php
+                                        $result = $conn->query("SELECT id, product_category FROM product_categorys");
+
+                                        if ($result->num_rows > 0) {
+                                            while ($row = $result->fetch_assoc()) {
+                                                echo '<option value="' . htmlspecialchars($row['id']) . '">' . htmlspecialchars($row['product_category']) . '</option>';
+                                            }
+                                        }
+                                        ?>
+
+                                    </select>
                                 </div>
 
                                 <button type="submit" name="submit" class="btn btn-primary">

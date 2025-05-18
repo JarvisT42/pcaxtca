@@ -2,6 +2,8 @@
     $currentPage = basename($_SERVER['PHP_SELF']);
     $isProductDropdownActive = in_array($currentPage, ['add_product.php', 'manage_product.php', 'add_product_category.php', 'add_product_brand.php']);
     $isInventoryDropdownActive = in_array($currentPage, ['restock_inventory.php', 'sample-table2.php']);
+    $isSalesOrdersDropdownActive = in_array($currentPage, ['view_order.php', 'process_deliver.php', 'shipped_delivered.php']);
+
     ?>
 
  <aside class="sidenav navbar navbar-vertical navbar-expand-xs  fixed-start  bg-gray-400" id="sidenav-main">
@@ -105,7 +107,9 @@
 
              <!-- Sales/Orders Dropdown -->
              <li class="nav-item">
-                 <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#salesOrdersDropdown" role="button" aria-expanded="false" aria-controls="salesOrdersDropdown">
+                 <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#salesOrdersDropdown" role="button"
+                     aria-expanded="<?= $isSalesOrdersDropdownActive ? 'true' : 'false' ?>"
+                     aria-expanded="false" aria-controls="salesOrdersDropdown">
                      <div class="d-flex align-items-center">
                          <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                              <!-- SVG icon here -->
@@ -126,17 +130,23 @@
                          <span class="nav-link-text ms-1">Sales / Orders</span>
                      </div>
                  </a>
-                 <div class="collapse" id="salesOrdersDropdown">
+                 <div class="collapse <?= $isSalesOrdersDropdownActive ? 'show' : '' ?>" id="salesOrdersDropdown">
+
                      <ul class="nav flex-column ms-4">
                          <li class="nav-item">
-                             <a class="nav-link" href="sample-table1.php">View Orders</a>
+                             <a class="nav-link <?= $currentPage == 'view_order.php' ? 'active' : '' ?>" href="view_order.php">View Orders</a>
+
+                             <!-- <a class="nav-link" href="view_order.php">View Orders</a> -->
                          </li>
                          <li class="nav-item">
-                             <a class="nav-link" href="sample-table2.php">Process Orders</a>
+                             <a class="nav-link <?= $currentPage == 'process_deliver.php' ? 'active' : '' ?>" href="process_deliver.php">Process Orders</a>
+
+
                          </li>
 
+
                          <li class="nav-item">
-                             <a class="nav-link" href="sample-table2.php">Shipped / Delivered</a>
+                             <a class="nav-link <?= $currentPage == 'shipped_delivered.php' ? 'active' : '' ?>" href="shipped_delivered.php">Process Orders</a>
                          </li>
                      </ul>
                  </div>
