@@ -283,26 +283,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cancel'])) {
                                 <?php endif; ?>
                             </div>
 
-                            <style>
-                                .order-card {
-                                    border: 1px solid #eee;
-                                    border-radius: 8px;
-                                    transition: all 0.3s ease;
-                                }
 
-                                .order-card:hover {
-                                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-                                }
-
-                                .modal-content {
-                                    padding: 20px;
-                                }
-
-                                .modal-body img {
-                                    max-height: 150px;
-                                    object-fit: cover;
-                                }
-                            </style>
 
 
 
@@ -624,7 +605,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cancel'])) {
                                     INNER JOIN order_items ON orders.order_id = order_items.order_id
                                     INNER JOIN products ON order_items.product_id = products.id
                                     WHERE orders.user_id = ? 
-                                    AND orders.order_status = 'processing' /* Change this to your shipping status */
+                                    AND orders.order_status = 'shipped' /* Change this to your shipping status */
                                     ORDER BY orders.order_date DESC
                                 ";
 
@@ -721,20 +702,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cancel'])) {
                                 <?php endif; ?>
                             </div>
 
-                            <style>
-                                /* Additional status color */
-                                .status-shipping {
-                                    background-color: #cce5ff;
-                                    color: #004085;
-                                    border: 1px solid #b8daff;
-                                }
 
-                                .shipping-timeline {
-                                    border-left: 3px solid #eee;
-                                    padding-left: 1.5rem;
-                                    margin-left: 1rem;
-                                }
-                            </style>
 
 
 
@@ -832,7 +800,40 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cancel'])) {
 </body>
 
 </html>
+<style>
+    .order-card {
+        border: 1px solid #eee;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
 
+    .order-card:hover {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .modal-content {
+        padding: 20px;
+    }
+
+    .modal-body img {
+        max-height: 150px;
+        object-fit: cover;
+    }
+</style>
+<style>
+    /* Additional status color */
+    .status-shipping {
+        background-color: #cce5ff;
+        color: #004085;
+        border: 1px solid #b8daff;
+    }
+
+    .shipping-timeline {
+        border-left: 3px solid #eee;
+        padding-left: 1.5rem;
+        margin-left: 1rem;
+    }
+</style>
 <style>
     .status-shipping {
         background-color: #cce5ff;

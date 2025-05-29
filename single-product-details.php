@@ -34,20 +34,6 @@ if ($product_id > 0 && $user_id > 0) {
 
 
 
-// Fetch product details
-$product = [];
-if ($product_id > 0) {
-    $stmt = $conn->prepare("SELECT * FROM products WHERE id = ?");
-    $stmt->bind_param("i", $product_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $product = $result->fetch_assoc();
-    $stmt->close();
-}
-
-if (empty($product)) {
-    die("Product not found!");
-}
 
 // Handle Add to Cart
 
@@ -120,10 +106,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <!-- ##### Header Area Start ##### -->
     <?php include 'header.php'; ?>
 
-  
-  
 
-  
+
+
+
     <!-- ##### Right Side Cart End ##### -->
 
     <!-- ##### Single Product Details Area Start ##### -->
@@ -182,12 +168,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             name="quantity"
                             value="1"
                             min="1"
-                            max="<?= $product['quantity'] ?>"
+                            max="<?= $product['on_sale_quantity'] ?>"
                             class="form-control mx-2 qty-input"
                             style="width: 60px; text-align: center;">
                         <button type="button" class="btn btn-sm btn-outline-secondary qty-btn increment">+</button>
                     </div>
-                    <small>Available: <?= $product['quantity'] ?> items</small>
+                    <small>Available: <?= $product['on_sale_quantity'] ?> items</small>
                 </div>
 
 

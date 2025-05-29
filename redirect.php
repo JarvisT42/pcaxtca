@@ -56,7 +56,8 @@ $userinfo = $oauth->userinfo->get();
 
 $email = $userinfo->email;
 $name = $userinfo->name;
-
+$firstName = $userinfo->givenName;
+$lastName = $userinfo->familyName;
 // Handle signup or signin
 if ($mode === "signup") {
     // Insert or update user
@@ -67,17 +68,23 @@ if ($mode === "signup") {
 
     if ($stmt->num_rows > 0) {
         // Already registered, redirect back with message
-        header("Location: sign-up?registered_already=1");
+        header("Location: sign-up.php?registered_already=1");
         exit;
     }
     $auth_provider = "google";
     // Insert new user
-    $stmt = $conn->prepare("INSERT INTO users (email, name, auth_provider) VALUES (?, ?, ?)");
-    $stmt->bind_param("sss", $email, $name, $auth_provider);
+    $stmt = $conn->prepare("INSERT INTO users (email, name, first_name, last_name, auth_provider) VALUES (?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssss", $email, $name, $firstName, $lastName, $auth_provider);
 
     if ($stmt->execute()) {
+        $id = $stmt->insert_id; // Get inserted user's ID
 
-        header("Location: user/index");
+        // Set session variables
+        $_SESSION['user_id'] = $id;
+        $_SESSION['email'] = $email;
+        $_SESSION['user_logged_in'] = true;
+
+        header("Location: shop");
     } else {
         echo "Error inserting user: " . $stmt->error;
     }
@@ -106,18 +113,12 @@ if ($mode === "signup") {
         // Redirect to shop
         header("Location: shop");
         exit;
-    }
-    $auth_provider = "google";
-
-    // Insert new user
-    $stmt = $conn->prepare("INSERT INTO users (email, name, auth_provider) VALUES (?, ?, ?)");
-    $stmt->bind_param("sss", $email, $name, $auth_provider);
-
-    if ($stmt->execute()) {
-        header("Location: shop");
     } else {
-        echo "Error inserting user: " . $stmt->error;
+        // User not found, redirect to signup
+        header("Location: sign-in.php?account_0=1");
+        exit;
     }
+
 
     $stmt->close();
     $conn->close();

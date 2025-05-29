@@ -9,6 +9,7 @@ include '../connect/connection.php';
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
 
     $order_id = $_POST['order_id'];
+    $item_id = $_POST['item_id'];
 
 
 
@@ -18,6 +19,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
     $stmt->bind_param("si", $new_status, $order_id);
 
     if ($stmt->execute()) {
+        $stmt = $conn->prepare("UPDATE order_items SET status = ?, completed_date = NOW() WHERE item_id = ?");
+        $stmt->bind_param("si", $new_status, $item_id);
+        $stmt->execute();
+
+
         $_SESSION['success'] = "Order status updated successfully!";
     } else {
         $_SESSION['error'] = "Error updating status: " . $conn->error;
@@ -26,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
     $stmt->close();
 
 
-    header("Location: process_delivery.php"); // Redirect back to orders page
+    header("Location: process_deliver.php"); // Redirect back to orders page
     exit();
 }
 ?>
@@ -112,6 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
                                         SELECT 
                                             orders.*,
                                             order_items.*,
+                                             order_items.item_id,
                                             products.product_name,
                                             products.image_path,
                                             users.first_name,
@@ -135,6 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
                                         if (!isset($grouped[$order_id])) {
                                             $grouped[$order_id] = [
                                                 'header' => [
+
                                                     'order_id' => $row['order_id'],
 
                                                     'invoice_id' => $row['invoice_id'],
@@ -150,10 +158,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
                                             ];
                                         }
                                         $grouped[$order_id]['items'][] = [
+                                            'item_id' => $row['item_id'],
+
                                             'product_name' => $row['product_name'],
                                             'image_path' => $row['image_path'],
                                             'quantity' => $row['quantity'],
-                                            'amount' => $row['amount']
+                                            'cost_price' => $row['cost_price']
                                         ];
                                     }
 
@@ -203,10 +213,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
                                                                 <div class="col-md-6">
                                                                     <h5><?= htmlspecialchars($item['product_name']) ?></h5>
                                                                     <p>Quantity: <?= htmlspecialchars($item['quantity']) ?></p>
-                                                                    <p>Price: ₱<?= number_format($item['amount'], 2) ?></p>
+                                                                    <p>Price: ₱<?= number_format($item['cost_price'], 2) ?></p>
                                                                 </div>
                                                                 <div class="col-md-3 text-end">
-                                                                    <p>Subtotal: ₱<?= number_format($item['quantity'] * $item['amount'], 2) ?></p>
+                                                                    <p>Subtotal: ₱<?= number_format($item['cost_price'], 2) ?></p>
                                                                 </div>
 
 
@@ -230,6 +240,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
 
                                                         <form action="" method="POST">
                                                             <input type="hidden" name="order_id" value="<?= $order_id ?>">
+                                                            <input type="hidden" name="item_id" value="<?= number_format($item['item_id'], 2) ?>">
+
                                                             <button type="submit" name="submit" value="process" class="btn btn-primary">
                                                                 <i class="fas fa-cogs"></i> Complete
                                                             </button>

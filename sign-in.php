@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $_SESSION['admin_id'] = $admin['id'];
       $_SESSION['email'] = $admin['email'];
       $_SESSION['admin_logged_in'] = true; // ✅ Add this
-      header("Location: admin/dashboard");
+      header("Location: admin/dashboard.php");
       exit;
     } else {
       header("Location: sign-in?password_0=1");
@@ -90,7 +90,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       header("Location: shop");
       exit;
     } else {
-      header("Location: sign-in?password_0=1");
+      header("Location: sign-in.php?incorect_password=1");
+
       exit;
     }
   }
@@ -227,6 +228,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="mb-3">
                       <input type="email" name="email" class="form-control" placeholder="Email" required>
                     </div>
+                    <?php if (isset($_GET['incorect_password'])): ?>
+                      <div id="message" class="alert alert-warning alert-dismissible fade show" role="alert">
+                        <strong>Notice:</strong> You are already signed up!
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                      </div>
+                      <script>
+                        // Auto-dismiss after 5 seconds
+                        setTimeout(function() {
+                          const msg = document.getElementById('message');
+                          if (msg) {
+                            msg.classList.remove('show');
+                            msg.classList.add('fade');
+                            setTimeout(() => msg.remove(), 500); // Remove element after fade out
+                          }
+                        }, 5000);
+                      </script>
+                    <?php endif; ?>
+
+
+
                     <label>Password</label>
                     <div class="mb-3">
                       <input type="password" name="password" class="form-control" placeholder="Password" required>
@@ -282,43 +303,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <a href="javascript:;" target="_blank" class="text-secondary me-xl-5 me-3 mb-sm-0 mb-2">
             About Us
           </a>
-          <a href="javascript:;" target="_blank" class="text-secondary me-xl-5 me-3 mb-sm-0 mb-2">
-            Team
-          </a>
+
           <a href="javascript:;" target="_blank" class="text-secondary me-xl-5 me-3 mb-sm-0 mb-2">
             Products
           </a>
-          <a href="javascript:;" target="_blank" class="text-secondary me-xl-5 me-3 mb-sm-0 mb-2">
-            Blog
-          </a>
-          <a href="javascript:;" target="_blank" class="text-secondary me-xl-5 me-3 mb-sm-0 mb-2">
-            Pricing
-          </a>
+
+
         </div>
-        <div class="col-lg-8 mx-auto text-center mb-4 mt-2">
-          <a href="javascript:;" target="_blank" class="text-secondary me-xl-4 me-4">
-            <span class="text-lg fab fa-dribbble"></span>
-          </a>
-          <a href="javascript:;" target="_blank" class="text-secondary me-xl-4 me-4">
-            <span class="text-lg fab fa-twitter"></span>
-          </a>
-          <a href="javascript:;" target="_blank" class="text-secondary me-xl-4 me-4">
-            <span class="text-lg fab fa-instagram"></span>
-          </a>
-          <a href="javascript:;" target="_blank" class="text-secondary me-xl-4 me-4">
-            <span class="text-lg fab fa-pinterest"></span>
-          </a>
-          <a href="javascript:;" target="_blank" class="text-secondary me-xl-4 me-4">
-            <span class="text-lg fab fa-github"></span>
-          </a>
-        </div>
+
       </div>
       <div class="row">
         <div class="col-8 mx-auto text-center mt-1">
           <p class="mb-0 text-secondary">
             Copyright © <script>
               document.write(new Date().getFullYear())
-            </script> Soft by Creative Tim.
+            </script>
           </p>
         </div>
       </div>

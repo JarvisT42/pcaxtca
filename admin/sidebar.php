@@ -2,16 +2,17 @@
     $currentPage = basename($_SERVER['PHP_SELF']);
     $isProductDropdownActive = in_array($currentPage, ['add_product.php', 'manage_product.php', 'add_product_category.php', 'add_product_brand.php']);
     $isInventoryDropdownActive = in_array($currentPage, ['restock_inventory.php', 'sample-table2.php']);
-    $isSalesOrdersDropdownActive = in_array($currentPage, ['view_order.php', 'process_deliver.php', 'shipped_delivered.php']);
-
+    $isSalesOrdersDropdownActive = in_array($currentPage, ['view_order.php', 'process_deliver.php', 'shipped_delivered.php', 'cancelled_order.php']);
+    $isBranchDropdownActive = in_array($currentPage, ['add_branch.php']);
+    $isUserDropdownActive = in_array($currentPage, ['manage_user.php']);
     ?>
 
  <aside class="sidenav navbar navbar-vertical navbar-expand-xs  fixed-start  bg-gray-400" id="sidenav-main">
      <div class="sidenav-header">
          <i class="fas fa-times p-3 cursor-pointer text-secondary opacity-5 position-absolute end-0 top-0 d-none d-xl-none" aria-hidden="true" id="iconSidenav"></i>
-         <a class="navbar-brand m-0" href=" https://demos.creative-tim.com/soft-ui-dashboard/pages/dashboard.html " target="_blank">
+         <a class="navbar-brand m-0" href="../index.php" target="_blank">
              <img src="../assets/img/logo-ct-dark.png" class="navbar-brand-img h-100" alt="main_logo">
-             <span class="ms-1 font-weight-bold">Soft UI Dashboard 3</span>
+             <span class="ms-1 font-weight-bold">Pcaxtca Dashboard </span>
          </a>
      </div>
      <hr class="horizontal dark mt-0">
@@ -55,7 +56,12 @@
                      aria-controls="productManagementDropdown">
                      <div class="d-flex align-items-center">
                          <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
-                             <!-- SVG icon -->
+                             <svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                 <path fill="#000000" d="M21 7.5L12 12.75L3 7.5L12 2.25L21 7.5Z" />
+                                 <path fill="#000000" d="M3 8.98V16.5L12 21.75V14.23L3 8.98Z" />
+                                 <path fill="#000000" d="M21 8.98V16.5L12 21.75V14.23L21 8.98Z" />
+                             </svg>
+
                          </div>
                          <span class="nav-link-text ms-1">Product Management</span>
                      </div>
@@ -88,7 +94,13 @@
                      aria-controls="inventoryManagementDropdown">
                      <div class="d-flex align-items-center">
                          <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
-                             <!-- SVG icon -->
+                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                 <path fill="#000000" d="M3 3H21V9H3V3Z" />
+                                 <path fill="#000000" d="M3 10H21V21H3V10Z" />
+                                 <path fill="#ffffff" d="M6 6H9V7H6V6Z" />
+                                 <path fill="#ffffff" d="M6 12H18V13H6V12Z" />
+                                 <path fill="#ffffff" d="M6 15H18V16H6V15Z" />
+                             </svg>
                          </div>
                          <span class="nav-link-text ms-1">Inventory Management</span>
                      </div>
@@ -146,7 +158,11 @@
 
 
                          <li class="nav-item">
-                             <a class="nav-link <?= $currentPage == 'shipped_delivered.php' ? 'active' : '' ?>" href="shipped_delivered.php">Process Orders</a>
+                             <a class="nav-link <?= $currentPage == 'shipped_delivered.php' ? 'active' : '' ?>" href="shipped_delivered.php">Shipped/Delivered</a>
+                         </li>
+
+                         <li class="nav-item">
+                             <a class="nav-link <?= $currentPage == 'cancelled_order.php' ? 'active' : '' ?>" href="cancelled_order.php">Cancelled Orders</a>
                          </li>
                      </ul>
                  </div>
@@ -154,31 +170,33 @@
 
              <!-- Users/Roles Dropdown -->
              <li class="nav-item">
-                 <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#usersRolesDropdown" role="button" aria-expanded="false" aria-controls="usersRolesDropdown">
+
+
+                 <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#usersRolesDropdown" role="button" aria-expanded="<?= $isUserDropdownActive ? 'true' : 'false' ?>" aria-controls="usersRolesDropdown">
                      <div class="d-flex align-items-center">
                          <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                              <!-- SVG icon here -->
-                             <svg width="12px" height="12px" viewBox="0 0 42 42" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-                                 <title>office</title>
-                                 <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                                     <g transform="translate(-1869.000000, -293.000000)" fill="#FFFFFF" fill-rule="nonzero">
-                                         <g transform="translate(1716.000000, 291.000000)">
-                                             <g id="office" transform="translate(153.000000, 2.000000)">
-                                                 <path class="color-background opacity-6" d="M12.25,17.5 L8.75,17.5 L8.75,1.75 C8.75,0.78225 9.53225,0 10.5,0 L31.5,0 C32.46775,0 33.25,0.78225 33.25,1.75 L33.25,12.25 L29.75,12.25 L29.75,3.5 L12.25,3.5 L12.25,17.5 Z"></path>
-                                                 <path class="color-background" d="M40.25,14 L24.5,14 C23.53225,14 22.75,14.78225 22.75,15.75 L22.75,38.5 L19.25,38.5 L19.25,22.75 C19.25,21.78225 18.46775,21 17.5,21 L1.75,21 C0.78225,21 0,21.78225 0,22.75 L0,40.25 C0,41.21775 0.78225,42 1.75,42 L40.25,42 C41.21775,42 42,41.21775 42,40.25 L42,15.75 C42,14.78225 41.21775,14 40.25,14 Z M12.25,36.75 L7,36.75 L7,33.25 L12.25,33.25 L12.25,36.75 Z M12.25,29.75 L7,29.75 L7,26.25 L12.25,26.25 L12.25,29.75 Z M35,36.75 L29.75,36.75 L29.75,33.25 L35,33.25 L35,36.75 Z M35,29.75 L29.75,29.75 L29.75,26.25 L35,26.25 L35,29.75 Z M35,22.75 L29.75,22.75 L29.75,19.25 L35,19.25 L35,22.75 Z"></path>
-                                             </g>
-                                         </g>
-                                     </g>
-                                 </g>
+                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                 <!-- Group of users -->
+                                 <circle cx="8" cy="8" r="3" fill="#000000" />
+                                 <circle cx="16" cy="8" r="3" fill="#000000" />
+                                 <circle cx="12" cy="16" r="4" fill="#000000" />
+
+                                 <!-- Optional: gear/settings on one user for "roles" -->
+                                 <path fill="none" stroke="#000" stroke-width="1.5" d="M18 14h2M18 16h2M18 18h2M20 15v2M19 17h2" />
                              </svg>
+
                          </div>
                          <span class="nav-link-text ms-1">Users / Roles</span>
                      </div>
                  </a>
-                 <div class="collapse" id="usersRolesDropdown">
+
+                 <div class="collapse <?= $isUserDropdownActive ? 'show' : '' ?>" id="usersRolesDropdown">
                      <ul class="nav flex-column ms-4">
                          <li class="nav-item">
-                             <a class="nav-link" href="sample-table1.php">Manage Users</a>
+                             <a class="nav-link <?= $currentPage == 'manage_user.php' ? 'active' : '' ?>" href="manage_user.php">Manage Users</a>
+
+
                          </li>
                          <li class="nav-item">
                              <a class="nav-link" href="sample-table2.php">Roles & Permissions</a>
@@ -187,31 +205,28 @@
                  </div>
              </li>
              <li class="nav-item">
-                 <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#managementDropdown" role="button" aria-expanded="false" aria-controls="managementDropdown">
+                 <a class="nav-link d-flex justify-content-between align-items-center"
+                     aria-expanded="<?= $isSalesOrdersDropdownActive ? 'true' : 'false' ?>"
+
+                     data-bs-toggle="collapse" href="#managementDropdown" role="button" aria-expanded="false" aria-controls="managementDropdown">
                      <div class="d-flex align-items-center">
                          <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                              <!-- SVG icon here -->
-                             <svg width="12px" height="12px" viewBox="0 0 42 42" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-                                 <title>office</title>
-                                 <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                                     <g transform="translate(-1869.000000, -293.000000)" fill="#FFFFFF" fill-rule="nonzero">
-                                         <g transform="translate(1716.000000, 291.000000)">
-                                             <g id="office" transform="translate(153.000000, 2.000000)">
-                                                 <path class="color-background opacity-6" d="M12.25,17.5 L8.75,17.5 L8.75,1.75 C8.75,0.78225 9.53225,0 10.5,0 L31.5,0 C32.46775,0 33.25,0.78225 33.25,1.75 L33.25,12.25 L29.75,12.25 L29.75,3.5 L12.25,3.5 L12.25,17.5 Z"></path>
-                                                 <path class="color-background" d="M40.25,14 L24.5,14 C23.53225,14 22.75,14.78225 22.75,15.75 L22.75,38.5 L19.25,38.5 L19.25,22.75 C19.25,21.78225 18.46775,21 17.5,21 L1.75,21 C0.78225,21 0,21.78225 0,22.75 L0,40.25 C0,41.21775 0.78225,42 1.75,42 L40.25,42 C41.21775,42 42,41.21775 42,40.25 L42,15.75 C42,14.78225 41.21775,14 40.25,14 Z M12.25,36.75 L7,36.75 L7,33.25 L12.25,33.25 L12.25,36.75 Z M12.25,29.75 L7,29.75 L7,26.25 L12.25,26.25 L12.25,29.75 Z M35,36.75 L29.75,36.75 L29.75,33.25 L35,33.25 L35,36.75 Z M35,29.75 L29.75,29.75 L29.75,26.25 L35,26.25 L35,29.75 Z M35,22.75 L29.75,22.75 L29.75,19.25 L35,19.25 L35,22.75 Z"></path>
-                                             </g>
-                                         </g>
-                                     </g>
-                                 </g>
+                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                 <rect x="3" y="7" width="18" height="12" stroke="#000" stroke-width="2" fill="none" />
+                                 <path d="M7 7V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2" stroke="#000" stroke-width="2" fill="none" />
                              </svg>
+
                          </div>
                          <span class="nav-link-text ms-1">Management</span>
                      </div>
                  </a>
-                 <div class="collapse" id="managementDropdown">
+                 <div class="collapse <?= $isBranchDropdownActive ? 'show' : '' ?>" id="managementDropdown">
+
                      <ul class="nav flex-column ms-4">
                          <li class="nav-item">
-                             <a class="nav-link" href="add_branch.php">Add Branch</a>
+                             <a class="nav-link <?= $currentPage == 'add_branch.php' ? 'active' : '' ?>" href="add_branch.php">Add Branch</a>
+
                          </li>
 
                      </ul>
@@ -223,19 +238,13 @@
                      <div class="d-flex align-items-center">
                          <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                              <!-- SVG icon here -->
-                             <svg width="12px" height="12px" viewBox="0 0 42 42" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-                                 <title>office</title>
-                                 <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                                     <g transform="translate(-1869.000000, -293.000000)" fill="#FFFFFF" fill-rule="nonzero">
-                                         <g transform="translate(1716.000000, 291.000000)">
-                                             <g id="office" transform="translate(153.000000, 2.000000)">
-                                                 <path class="color-background opacity-6" d="M12.25,17.5 L8.75,17.5 L8.75,1.75 C8.75,0.78225 9.53225,0 10.5,0 L31.5,0 C32.46775,0 33.25,0.78225 33.25,1.75 L33.25,12.25 L29.75,12.25 L29.75,3.5 L12.25,3.5 L12.25,17.5 Z"></path>
-                                                 <path class="color-background" d="M40.25,14 L24.5,14 C23.53225,14 22.75,14.78225 22.75,15.75 L22.75,38.5 L19.25,38.5 L19.25,22.75 C19.25,21.78225 18.46775,21 17.5,21 L1.75,21 C0.78225,21 0,21.78225 0,22.75 L0,40.25 C0,41.21775 0.78225,42 1.75,42 L40.25,42 C41.21775,42 42,41.21775 42,40.25 L42,15.75 C42,14.78225 41.21775,14 40.25,14 Z M12.25,36.75 L7,36.75 L7,33.25 L12.25,33.25 L12.25,36.75 Z M12.25,29.75 L7,29.75 L7,26.25 L12.25,26.25 L12.25,29.75 Z M35,36.75 L29.75,36.75 L29.75,33.25 L35,33.25 L35,36.75 Z M35,29.75 L29.75,29.75 L29.75,26.25 L35,26.25 L35,29.75 Z M35,22.75 L29.75,22.75 L29.75,19.25 L35,19.25 L35,22.75 Z"></path>
-                                             </g>
-                                         </g>
-                                     </g>
-                                 </g>
+                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                 <!-- Switch background -->
+                                 <rect x="2" y="9" width="20" height="6" rx="3" ry="3" fill="#ccc" />
+                                 <!-- Switch knob -->
+                                 <circle cx="8" cy="12" r="4" fill="#000" />
                              </svg>
+
                          </div>
                          <span class="nav-link-text ms-1">Optional Features</span>
                      </div>

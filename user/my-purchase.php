@@ -81,9 +81,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cancel'])) {
                             <li class="nav-item">
                                 <a class="nav-link" data-toggle="tab" href="#pending">Pending</a>
                             </li>
-                            <li class="nav-item">
+                            <!-- <li class="nav-item">
                                 <a class="nav-link" data-toggle="tab" href="#to-ship">To Ship</a>
-                            </li>
+                            </li> -->
                             <li class="nav-item">
                                 <a class="nav-link" data-toggle="tab" href="#to-receive">To Receive</a>
                             </li>
@@ -189,7 +189,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cancel'])) {
                                     'product_name' => $row['product_name'],
                                     'image_path' => $row['image_path'],
                                     'quantity' => $row['quantity'],
-                                    'amount' => $row['amount']
+                                    'sell_price' => $row['sell_price']
                                 ];
                             }
                             ?>
@@ -240,7 +240,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cancel'])) {
                                             <div class="modal-dialog modal-lg" role="document">
                                                 <div class="modal-content">
                                                     <div class="modal-header">
-                                                        <h5 class="modal-title">Order Details #<?= $order_id ?></h5>
+                                                        <h5 class="modal-title">Order Desstails #<?= $order_id ?></h5>
                                                         <button type="button" class="close" data-dismiss="modal">
                                                             <span>&times;</span>
                                                         </button>
@@ -254,10 +254,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cancel'])) {
                                                                 <div class="col-md-6">
                                                                     <h5><?= $item['product_name'] ?></h5>
                                                                     <p>Quantity: <?= $item['quantity'] ?></p>
-                                                                    <p>Price: ₱<?= number_format($item['amount'], 2) ?></p>
+                                                                    <p>Price: ₱<?= number_format($item['sell_price'], 2) ?></p>
                                                                 </div>
                                                                 <div class="col-md-3 text-right">
-                                                                    <p>Subtotal: ₱<?= number_format($item['quantity'] * $item['amount'], 2) ?></p>
+                                                                    <p>Subtotal: ₱<?= number_format($item['quantity'] * $item['sell_price'], 2) ?></p>
                                                                     <form action="" method="POST" class="mt-2">
                                                                         <!-- <input type="hidden" name="order_id" value="<?= $order_id ?>"> -->
                                                                         <input type="hidden" name="item_id" value="<?= $item['item_id'] ?>">
@@ -283,26 +283,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cancel'])) {
                                 <?php endif; ?>
                             </div>
 
-                            <style>
-                                .order-card {
-                                    border: 1px solid #eee;
-                                    border-radius: 8px;
-                                    transition: all 0.3s ease;
-                                }
 
-                                .order-card:hover {
-                                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-                                }
 
-                                .modal-content {
-                                    padding: 20px;
-                                }
 
-                                .modal-body img {
-                                    max-height: 150px;
-                                    object-fit: cover;
-                                }
-                            </style>
+
 
 
 
@@ -320,158 +304,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cancel'])) {
                                     products.product_name,
                                     products.image_path,
                                      order_items.item_id,
-                                     order_items.amount
-                                FROM orders
-                                INNER JOIN order_items ON orders.order_id = order_items.order_id
-                                INNER JOIN products ON order_items.product_id = products.id
-                                WHERE orders.user_id = ? 
-                                AND orders.order_status = 'shipped'
-                                AND order_items.status = 'pending'
-                                ORDER BY orders.order_date DESC
-                            ";
-
-                            $stmt = $conn->prepare($query);
-                            $stmt->bind_param("i", $user_id);
-                            $stmt->execute();
-                            $result = $stmt->get_result();
-
-                            // Group orders by order_id
-                            $grouped_orders = [];
-                            while ($row = $result->fetch_assoc()) {
-                                $order_id = $row['order_id'];
-
-                                if (!isset($grouped_orders[$order_id])) {
-                                    $grouped_orders[$order_id] = [
-                                        'header' => [
-                                            'invoice_id' => $row['invoice_id'],
-                                            'order_date' => $row['order_date'],
-                                            'total_amount' => $row['total_amount'],
-                                            'payment_method' => $row['payment_method'],
-                                            'order_status' => $row['order_status'],
-
-                                        ],
-                                        'items' => []
-                                    ];
-                                }
-
-                                $grouped_orders[$order_id]['items'][] = [
-                                    'item_id' => $row['item_id'], // Add item_id here
-                                    'amount' => $row['amount'], // Add item_id here
-
-
-
-                                    'product_name' => $row['product_name'],
-                                    'image_path' => $row['image_path'],
-                                    'quantity' => $row['quantity'],
-                                    'amount' => $row['amount']
-                                ];
-                            }
-                            ?>
-
-                            <div class="tab-pane fade" id="to-ship" role="tabpanel">
-
-                                <?php if (empty($grouped_orders)): ?>
-                                    <div class="text-center py-5">
-                                        <i class="fas fa-shipping-fast fa-3x text-muted mb-3"></i>
-                                        <h5 class="text-muted">No Orders To Ship</h5>
-                                    </div>
-                                <?php else: ?>
-                                    <?php foreach ($grouped_orders as $order_id => $order_data): ?>
-                                        <div class="order-card mb-4">
-                                            <!-- Order Header -->
-                                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                                                <div class="order-info">
-                                                    <span class="text-muted">Order #<?= $order_id ?></span>
-                                                    <span class="mx-2">|</span>
-                                                    <span class="order-status status-processing">
-                                                        <!-- <?= strtoupper($order_data['header']['order_status']) ?> -->
-                                                        Pending
-                                                    </span>
-                                                </div>
-                                                <small class="text-muted">
-                                                    <?= date('M d, Y', strtotime($order_data['header']['order_date'])) ?>
-                                                </small>
-                                            </div>
-
-                                            <!-- Order Summary -->
-                                            <div class="card-body">
-                                                <div class="row">
-                                                    <div class="col-md-8">
-                                                        <h5><?= count($order_data['items']) ?> Item(s) in this order</h5>
-
-                                                        <p class="text-muted">Total Amount: ₱<?= number_format($order_data['header']['total_amount'], 2) ?></p>
-
-                                                    </div>
-                                                    <div class="col-md-4 text-right">
-                                                        <button class="btn essence-btn btn-sm" data-toggle="modal" data-target="#orderModal<?= $order_id ?>">
-                                                            View Details
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Order Details Modal -->
-                                        <div class="modal fade" id="orderModal<?= $order_id ?>" tabindex="-1" role="dialog">
-                                            <div class="modal-dialog modal-lg" role="document">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title">Order Details #<?= $order_id ?></h5>
-                                                        <button type="button" class="close" data-dismiss="modal">
-                                                            <span>&times;</span>
-                                                        </button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <?php foreach ($order_data['items'] as $item): ?>
-                                                            <div class="row mb-3 border-bottom pb-3">
-                                                                <div class="col-md-3">
-                                                                    <img src="../admin/<?= $item['image_path'] ?>" class="img-fluid rounded">
-                                                                </div>
-                                                                <div class="col-md-6">
-                                                                    <h5><?= $item['product_name'] ?></h5>
-                                                                    <p>Quantity: <?= $item['quantity'] ?></p>
-                                                                    <p>Price: ₱<?= number_format($item['amount'], 2) ?></p>
-                                                                </div>
-                                                                <div class="col-md-3 text-right">
-                                                                    <p>Subtotal: ₱<?= number_format($item['quantity'] * $item['amount'], 2) ?></p>
-
-                                                                </div>
-                                                            </div>
-                                                        <?php endforeach; ?>
-
-                                                        <div class="row mt-4">
-                                                            <div class="col-md-12 text-right">
-                                                                <?php
-                                                                $totalAmount = 0;
-                                                                foreach ($order_data['items'] as $item) {
-                                                                    $totalAmount += $item['quantity'] * $item['amount'];
-                                                                }
-                                                                ?>
-                                                                <h4>Total: ₱<?= number_format($totalAmount, 2) ?></h4>
-                                                                <p class="text-muted">Payment Method: <?= $order_data['header']['payment_method'] ?></p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
-                            </div>
-
-
-                            <?php
-                            $user_id = $_SESSION['user_id'];
-
-                            // Get all orders with their items
-                            $query = "
-                                SELECT 
-                                    orders.*,
-                                    order_items.*,
-                                    products.product_name,
-                                    products.image_path,
-                                     order_items.item_id,
-                                     order_items.amount
+                                     order_items.sell_price
                                 FROM orders
                                 INNER JOIN order_items ON orders.order_id = order_items.order_id
                                 INNER JOIN products ON order_items.product_id = products.id
@@ -507,14 +340,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cancel'])) {
 
                                 $grouped_orders[$order_id]['items'][] = [
                                     'item_id' => $row['item_id'], // Add item_id here
-                                    'amount' => $row['amount'], // Add item_id here
+                                    'sell_price' => $row['sell_price'], // Add item_id here
 
 
 
                                     'product_name' => $row['product_name'],
                                     'image_path' => $row['image_path'],
                                     'quantity' => $row['quantity'],
-                                    'amount' => $row['amount']
+                                    'sell_price' => $row['sell_price']
                                 ];
                             }
                             ?>
@@ -581,10 +414,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cancel'])) {
                                                                 <div class="col-md-6">
                                                                     <h5><?= $item['product_name'] ?></h5>
                                                                     <p>Quantity: <?= $item['quantity'] ?></p>
-                                                                    <p>Price: ₱<?= number_format($item['amount'], 2) ?></p>
+                                                                    <p>Price: ₱<?= number_format($item['sell_price'] / 2, 2) ?></p>
                                                                 </div>
                                                                 <div class="col-md-3 text-right">
-                                                                    <p>Subtotal: ₱<?= number_format($item['quantity'] * $item['amount'], 2) ?></p>
+                                                                    <p>Subtotal: ₱<?= number_format($item['quantity'] * $item['sell_price'], 2) ?></p>
 
                                                                 </div>
                                                             </div>
@@ -595,7 +428,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cancel'])) {
                                                                 <?php
                                                                 $totalAmount = 0;
                                                                 foreach ($order_data['items'] as $item) {
-                                                                    $totalAmount += $item['quantity'] * $item['amount'];
+                                                                    $totalAmount += $item['quantity'] * $item['sell_price'];
                                                                 }
                                                                 ?>
                                                                 <h4>Total: ₱<?= number_format($totalAmount, 2) ?></h4>
@@ -624,7 +457,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cancel'])) {
                                     INNER JOIN order_items ON orders.order_id = order_items.order_id
                                     INNER JOIN products ON order_items.product_id = products.id
                                     WHERE orders.user_id = ? 
-                                    AND orders.order_status = 'processing' /* Change this to your shipping status */
+                                    AND orders.order_status = 'shipped' /* Change this to your shipping status */
                                     ORDER BY orders.order_date DESC
                                 ";
 
@@ -653,7 +486,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cancel'])) {
                                         'product_name' => $row['product_name'],
                                         'image_path' => $row['image_path'],
                                         'quantity' => $row['quantity'],
-                                        'amount' => $row['amount']
+                                        'sell_price' => $row['sell_price']
                                     ];
                                 }
                                 ?>
@@ -721,20 +554,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cancel'])) {
                                 <?php endif; ?>
                             </div>
 
-                            <style>
-                                /* Additional status color */
-                                .status-shipping {
-                                    background-color: #cce5ff;
-                                    color: #004085;
-                                    border: 1px solid #b8daff;
-                                }
 
-                                .shipping-timeline {
-                                    border-left: 3px solid #eee;
-                                    padding-left: 1.5rem;
-                                    margin-left: 1rem;
-                                }
-                            </style>
 
 
 
@@ -752,7 +572,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cancel'])) {
                                         products.product_name,
                                         products.image_path,
                                         order_items.quantity,
-                                        order_items.amount,
+                                        order_items.sell_price,
                                         order_items.status,
                                         order_items.cancelled_at
                                     FROM order_items
@@ -801,7 +621,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cancel'])) {
                                                     </div>
                                                     <div class="col-md-4 text-end">
                                                         <div class="mb-3">
-                                                            <h5>Total: ₱<?= number_format($item['amount'], 2) ?></h5>
+                                                            <h5>Total: ₱<?= number_format($item['sell_price'], 2) ?></h5>
                                                         </div>
                                                         <div class="btn-group">
                                                             <button class="btn essence-btn btn-sm">View Details</button>
@@ -832,7 +652,40 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cancel'])) {
 </body>
 
 </html>
+<style>
+    .order-card {
+        border: 1px solid #eee;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
 
+    .order-card:hover {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .modal-content {
+        padding: 20px;
+    }
+
+    .modal-body img {
+        max-height: 150px;
+        object-fit: cover;
+    }
+</style>
+<style>
+    /* Additional status color */
+    .status-shipping {
+        background-color: #cce5ff;
+        color: #004085;
+        border: 1px solid #b8daff;
+    }
+
+    .shipping-timeline {
+        border-left: 3px solid #eee;
+        padding-left: 1.5rem;
+        margin-left: 1rem;
+    }
+</style>
 <style>
     .status-shipping {
         background-color: #cce5ff;

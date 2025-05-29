@@ -16,7 +16,7 @@ $productQuery = "SELECT p.*, pos.on_sale_quantity, pb.product_brand AS brand_nam
                 FROM products p
                 INNER JOIN product_on_sales pos ON p.id = pos.product_id
                 LEFT JOIN product_brands pb ON p.product_brand_id = pb.id
-                WHERE p.sale_price BETWEEN $minPrice AND $maxPrice";
+                WHERE p.sell_price BETWEEN $minPrice AND $maxPrice";
 
 if (!empty($searchTerm)) {
     $productQuery .= " AND (p.product_name LIKE '%$searchTerm%' OR p.description LIKE '%$searchTerm%')";
@@ -37,10 +37,10 @@ switch ($currentSort) {
         $productQuery .= " ORDER BY pos.created_at DESC";
         break;
     case 'price_low_high':
-        $productQuery .= " ORDER BY p.sale_price ASC";
+        $productQuery .= " ORDER BY p.sell_price ASC";
         break;
     case 'price_high_low':
-        $productQuery .= " ORDER BY p.sale_price DESC";
+        $productQuery .= " ORDER BY p.sell_price DESC";
         break;
     default:
         $productQuery .= " ORDER BY p.rating DESC";

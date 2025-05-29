@@ -38,7 +38,7 @@
                 $_SESSION['cart'][$product_id] = [
                     'quantity' => $quantity,
                     'name' => $product['product_name'],
-                    'price' => $product['sale_price'] > 0 ? $product['sale_price'] : $product['price'],
+                    'price' => $product['sell_price'] > 0 ? $product['sell_price'] : $product['price'],
                     'image' =>  $product['image_path']
                 ];
             }
@@ -135,10 +135,10 @@
             <div class="single_product_desc clearfix">
                 <h2><?= htmlspecialchars($product['product_name']) ?></h2>
                 <p class="product-price">
-                    <?php if ($product['sale_price'] > 0): ?>
+                    <?php if ($product['sell_price'] > 0): ?>
                         <span class="old-price">$<?= number_format($product['price'], 2) ?></span>
                     <?php endif; ?>
-                    $<?= number_format(($product['sale_price'] > 0 ? $product['sale_price'] : $product['price']), 2) ?>
+                    $<?= number_format(($product['sell_price'] > 0 ? $product['sell_price'] : $product['price']), 2) ?>
                 </p>
                 <p class="product-desc"><?= htmlspecialchars($product['description']) ?></p>
 

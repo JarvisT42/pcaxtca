@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['restockProduct'])) {
         $new_quantity = $current_quantity + $quantity_to_add;
 
         // Prepare the SQL update query
-        $update = $conn->prepare("UPDATE products SET quantity = ? WHERE id = ?");
+        $update = $conn->prepare("UPDATE product_qty SET qty = ? WHERE product_id = ?");
         $update->bind_param("ii", $new_quantity, $product_id);
 
         // Execute the update and check if rows were affected
@@ -103,12 +103,14 @@ include 'admin_header.php';
         p.product_name, 
         p.description, 
         p.price, 
-        p.quantity, 
+        pq.qty, 
         p.image_path,
         COALESCE(SUM(s.on_sale_quantity), 0) AS total_on_sale_quantity
     FROM products p
     LEFT JOIN product_on_sales s ON p.id = s.product_id
-    GROUP BY p.id, p.product_name, p.description, p.price, p.quantity, p.image_path
+    LEFT JOIN product_qty pq ON p.id = pq.product_id
+
+    GROUP BY p.id, p.product_name, p.description, p.price, pq.qty, p.image_path
 ";
 
 
@@ -124,22 +126,22 @@ include 'admin_header.php';
                                             echo "<td>" . htmlspecialchars($row["description"]) . "</td>";
                                             echo "<td>" . htmlspecialchars($row["price"]) . "</td>";
 
-                                            echo "<td>" . htmlspecialchars($row["quantity"]) . "</td>";
+                                            echo "<td>" . htmlspecialchars($row["qty"] ?? '') . "</td>";
                                             echo "<td>" . htmlspecialchars($row["total_on_sale_quantity"]) . "</td>"; // ✅ This line
 
                                             $imagePath = htmlspecialchars($row["image_path"]);
                                             echo "<td><img src='$imagePath' alt='Product Image' width='60' height='60' style='object-fit: cover;'></td>";
 
                                             echo "<td>
-    <button type='button' class='btn btn-success restock-btn' 
-        data-bs-toggle='modal' 
-        data-bs-target='#restockModal'
-        data-id='" . $row['id'] . "'
-        data-name='" . htmlspecialchars($row['product_name']) . "'
-        data-quantity='" . $row['quantity'] . "'>
-        Restock
-    </button>
-</td>";
+                                            <button type='button' class='btn btn-success restock-btn' 
+                                                data-bs-toggle='modal' 
+                                                data-bs-target='#restockModal'
+                                                data-id='" . $row['id'] . "'
+                                                data-name='" . htmlspecialchars($row['product_name']) . "'
+                                                data-quantity='" . $row['qty'] . "'>
+                                                Restock
+                                            </button>
+                                        </td>";
 
                                             echo "</tr>";
                                         }

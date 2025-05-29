@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
     $brand = htmlspecialchars($_POST['brand']);
     $description = htmlspecialchars($_POST['description']);
     $price = floatval($_POST['price']);
-    $sale_price = floatval($_POST['sale_price']);
+    $sell_price = floatval($_POST['sell_price']);
     $quantity = intval($_POST['quantity']);
 
     // Initialize image paths
@@ -54,10 +54,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
 
     // Insert into database
     try {
+        // Insert into products table
         $stmt = $conn->prepare("INSERT INTO products 
-            (product_name, product_category_id, product_brand_id, description, 
-             price, sale_price, quantity, image_path, image_path2, image_path3)     
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        (product_name, product_category_id, product_brand_id, description, 
+         price, sell_price, image_path, image_path2, image_path3)     
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
         $stmt->execute([
             $product_name,
@@ -65,13 +66,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
             $brand,
             $description,
             $price,
-            $sale_price,
-            $quantity,
+            $sell_price,
             $image_path,
             $image_path2,
             $image_path3
         ]);
 
+        // ✅ Correct way to get the last inserted ID with PDO
+        $product_id = $conn->insert_id;
+
+        // Insert into product_qty table
+        $qty_stmt = $conn->prepare("INSERT INTO product_qty (product_id, qty) VALUES (?, ?)");
+        $qty_stmt->execute([$product_id, $quantity]);
+
+        // Redirect
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
     } catch (PDOException $e) {
@@ -163,8 +171,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="sale_price" class="form-label">Product Sale Price (₱)</label>
-                                    <input type="number" name="sale_price" id="sale_price" class="form-control" step="0.01" min="0.01">
+                                    <label for="sell_price" class="form-label">Product Sale Price (₱)</label>
+                                    <input type="number" name="sell_price" id="sell_price" class="form-control" step="0.01" min="0.01">
                                 </div>
                                 <div class="alert alert-warning" role="alert">
                                     <strong>Note:</strong> The item is not set on sale.

@@ -42,11 +42,21 @@ require __DIR__ . "/vendor/autoload.php";
 
 // $url = $client->createAuthUrl();
 
+$is_local = (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false || strpos($_SERVER['HTTP_HOST'], '127.0.0.1') !== false);
 
-$client = new Google\Client;
+// Initialize Google Client
+$client = new Google\Client();
 $client->setClientId("195730534849-kr4fp84dqijnsctm7dgc8eji9aq3hk6h.apps.googleusercontent.com");
+
+if ($is_local) {
+  $client->setRedirectUri("http://localhost:3000/redirect.php");
+} else {
+  $client->setRedirectUri("http://pcaxtca.shop/redirect.php");
+}
+
+
 $client->setClientSecret("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");
-$client->setRedirectUri("http://pcaxtca.shop/redirect.php");
+
 $client->addScope("email");
 $client->addScope("profile");
 
@@ -60,16 +70,29 @@ require_once 'connect/connection.php'; // Include your database configuration
 // Server-side form handling
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $email = $_POST['email'] ?? '';
+  $first_name = $_POST['first_name'] ?? '';
+
+  $last_name = $_POST['last_name'] ?? '';
+
   $password = $_POST['password'] ?? '';
 
   // ✅ Hash the password securely
   $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-  $stmt = $conn->prepare("INSERT INTO users (email, password) VALUES (?, ?)");
-  $stmt->bind_param("ss", $email, $hashedPassword);
+  $stmt = $conn->prepare("INSERT INTO users (email, first_name, last_name, password) VALUES (?, ?, ?, ?)");
+  $stmt->bind_param("ssss", $email, $first_name, $last_name, $hashedPassword);
 
   if ($stmt->execute()) {
-    header("Location: user/dashboard");
+    $id = $stmt->insert_id; // Get inserted user's ID
+    $_SESSION['user_id'] = $id;
+    $_SESSION['email'] = $email;
+    $_SESSION['user_logged_in'] = true;
+
+
+
+
+
+    header("Location: shop");
     exit;
   } else {
     echo "Error inserting user: " . $stmt->error;
@@ -109,6 +132,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <!-- Nepcha Analytics (nepcha.com) -->
   <!-- Nepcha is a easy-to-use web analytics. No cookies and fully compliant with GDPR, CCPA and PECR. -->
   <!-- <script defer data-site="YOUR_DOMAIN_HERE" src="https://api.nepcha.com/js/nepcha-analytics.js"></script> -->
+  <!-- Add this in your <head> or before the closing </body> -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
 </head>
 
 <body class="">
@@ -128,15 +154,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="collapse navbar-collapse" id="navigation">
         <ul class="navbar-nav mx-auto ms-xl-auto me-xl-7">
           <li class="nav-item">
-            <a class="nav-link d-flex align-items-center me-2 active" aria-current="page" href="dashboard.php">
+            <a class="nav-link d-flex align-items-center me-2 active" aria-current="page" href="index.php">
               <i class="fa fa-chart-pie opacity-6  me-1"></i>
-              Dashboard
+              Company
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link me-2" href="profile.php">
+            <a class="nav-link me-2" href="shop.php">
               <i class="fa fa-user opacity-6  me-1"></i>
-              Profile
+              Shop
             </a>
           </li>
           <li class="nav-item">
@@ -233,7 +259,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
 
-                <form role="form text-left" method="POST" action="">
+                <form role="form text-left" method="POST" action="" onsubmit="return validatePasswords()">
                   <div class="mb-3">
                     <input type="email" class="form-control" placeholder="Email" aria-label="Email"
                       id="emailInput" name="email" required
@@ -241,12 +267,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div id="emailFeedback" class="invalid-feedback"></div>
                   </div>
 
-                  <div id="passwordSection" style="display: none;">
+                  <div id="passwordSection" onsubmit="return validatePasswords()" style="display: none;">
                     <div class="mb-3">
-                      <input type="password" class="form-control" placeholder="Password"
-                        aria-label="Password" name="password" required
-                        aria-describedby="password-addon">
+                      <input type="text" class="form-control" placeholder="First Name"
+                        aria-label="First Name" name="first_name" required>
                     </div>
+                    <div class="mb-3">
+                      <input type="text" class="form-control" placeholder="Last Name"
+                        aria-label="Last Name" name="last_name" required>
+                    </div>
+
+                    <div class="mb-3 position-relative">
+                      <input type="password" class="form-control" placeholder="Password"
+                        aria-label="Password" name="password" id="password" required minlength="8">
+                      <i class="fa-solid fa-eye toggle-password" toggle="#password" style="position: absolute; top: 50%; right: 15px; transform: translateY(-50%); cursor: pointer;"></i>
+                      <div id="passwordError" class="text-danger small mt-1"></div>
+                    </div>
+
+                    <div class="mb-3 position-relative">
+                      <input type="password" class="form-control" placeholder="Confirm Password"
+                        aria-label="Confirm Password" name="confirm_password" id="confirm_password" required minlength="8">
+                      <i class="fa-solid fa-eye toggle-password" toggle="#confirm_password" style="position: absolute; top: 50%; right: 15px; transform: translateY(-50%); cursor: pointer;"></i>
+                      <div id="confirmPasswordError" class="text-danger small mt-1"></div>
+                    </div>
+
+
                     <div class="form-check form-check-info text-left">
                       <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" required>
                       <label class="form-check-label" for="flexCheckDefault">
@@ -254,6 +299,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                       </label>
                     </div>
                   </div>
+                  <script>
+                    function validatePasswords() {
+                      const password = document.getElementById('password');
+                      const confirmPassword = document.getElementById('confirm_password');
+                      const passwordError = document.getElementById('passwordError');
+                      const confirmPasswordError = document.getElementById('confirmPasswordError');
+
+                      // Clear previous errors
+                      passwordError.textContent = '';
+                      confirmPasswordError.textContent = '';
+
+                      let isValid = true;
+
+                      if (password.value.length < 8) {
+                        passwordError.textContent = 'Password must be at least 8 characters.';
+                        isValid = false;
+                      }
+
+                      if (password.value !== confirmPassword.value) {
+                        confirmPasswordError.textContent = 'Passwords do not match.';
+                        isValid = false;
+                      }
+
+                      return isValid;
+                    }
+
+                    // Password show/hide toggle
+                    document.querySelectorAll('.toggle-password').forEach(function(icon) {
+                      icon.addEventListener('click', function() {
+                        const input = document.querySelector(this.getAttribute('toggle'));
+                        const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                        input.setAttribute('type', type);
+                        this.classList.toggle('fa-eye');
+                        this.classList.toggle('fa-eye-slash');
+                      });
+                    });
+                  </script>
+
+
+
+
 
                   <div class="text-center">
                     <button type="submit" class="btn bg-gradient-dark w-100 my-4 mb-2" id="submitBtn" disabled>
@@ -262,7 +348,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   </div>
                 </form>
                 <p class="text-sm mt-3 mb-0">Already have an account?
-                  <a href="login.php" class="text-dark font-weight-bolder">Sign in</a>
+                  <a href="sign-in.php" class="text-dark font-weight-bolder">Sign in</a>
                 </p>
                 <script>
                   document.getElementById('emailInput').addEventListener('input', function(e) {
@@ -332,43 +418,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <a href="javascript:;" target="_blank" class="text-secondary me-xl-5 me-3 mb-sm-0 mb-2">
               About Us
             </a>
-            <a href="javascript:;" target="_blank" class="text-secondary me-xl-5 me-3 mb-sm-0 mb-2">
-              Team
-            </a>
+
             <a href="javascript:;" target="_blank" class="text-secondary me-xl-5 me-3 mb-sm-0 mb-2">
               Products
             </a>
-            <a href="javascript:;" target="_blank" class="text-secondary me-xl-5 me-3 mb-sm-0 mb-2">
-              Blog
-            </a>
-            <a href="javascript:;" target="_blank" class="text-secondary me-xl-5 me-3 mb-sm-0 mb-2">
-              Pricing
-            </a>
+
+
           </div>
-          <div class="col-lg-8 mx-auto text-center mb-4 mt-2">
-            <a href="javascript:;" target="_blank" class="text-secondary me-xl-4 me-4">
-              <span class="text-lg fab fa-dribbble"></span>
-            </a>
-            <a href="javascript:;" target="_blank" class="text-secondary me-xl-4 me-4">
-              <span class="text-lg fab fa-twitter"></span>
-            </a>
-            <a href="javascript:;" target="_blank" class="text-secondary me-xl-4 me-4">
-              <span class="text-lg fab fa-instagram"></span>
-            </a>
-            <a href="javascript:;" target="_blank" class="text-secondary me-xl-4 me-4">
-              <span class="text-lg fab fa-pinterest"></span>
-            </a>
-            <a href="javascript:;" target="_blank" class="text-secondary me-xl-4 me-4">
-              <span class="text-lg fab fa-github"></span>
-            </a>
-          </div>
+
         </div>
         <div class="row">
           <div class="col-8 mx-auto text-center mt-1">
             <p class="mb-0 text-secondary">
               Copyright © <script>
                 document.write(new Date().getFullYear())
-              </script> Soft by Creative Tim.
+              </script>
             </p>
           </div>
         </div>

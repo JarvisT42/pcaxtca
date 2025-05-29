@@ -121,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
                                         INNER JOIN products ON order_items.product_id = products.id
                                         INNER JOIN users ON orders.user_id = users.id
 
-                                        WHERE orders.order_status = 'processing'
+                                        WHERE order_items.status = 'cancelled'
                                         ORDER BY orders.order_date DESC
                                     ";
 
@@ -153,7 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
                                             'product_name' => $row['product_name'],
                                             'image_path' => $row['image_path'],
                                             'quantity' => $row['quantity'],
-                                            'cost_price' => $row['cost_price']
+                                            'sell_price' => $row['sell_price']
                                         ];
                                     }
 
@@ -169,12 +169,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
                                             <td><?= htmlspecialchars($order_data['header']['invoice_id']) ?></td>
                                             <td><?= htmlspecialchars($order_data['header']['first_name'] . ' ' . $order_data['header']['last_name']) ?></td>
                                             <td><?= date('M d, Y', strtotime($order_data['header']['order_date'])) ?></td>
-                                            <td><?= htmlspecialchars($order_data['header']['total_amount']) ?></td>
+                                            <td>
+                                                <?php
+                                                if ($order_data['header']['order_status'] === 'cancelled') {
+                                                    // Show total_amount from orders table
+                                                    echo '₱' . number_format($order_data['header']['total_amount'], 2);
+                                                } else {
+                                                    // Calculate total from order_items (sum of sell_price * quantity)
+                                                    $total = 0;
+                                                    foreach ($order_data['items'] as $item) {
+                                                        $total += $item['sell_price'] * $item['quantity'];
+                                                    }
+                                                    echo '₱' . number_format($total, 2);
+                                                }
+                                                ?>
+                                            </td>
                                             <td><?= htmlspecialchars($order_data['header']['payment_method']) ?></td>
-
                                             <td><?= htmlspecialchars($order_data['header']['order_status']) ?></td>
                                             <td>
-                                                <!-- Corrected button with proper modal target -->
                                                 <button type="button"
                                                     class="btn btn-primary"
                                                     data-bs-toggle="modal"
@@ -183,6 +195,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
                                                 </button>
                                             </td>
                                         </tr>
+                                        <!-- Modal code remains unchanged -->
+
+
 
                                         <!-- Modal for each order (inside the foreach loop) -->
                                         <div class="modal fade" id="orderModal<?= $order_id ?>" tabindex="-1">
@@ -203,10 +218,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
                                                                 <div class="col-md-6">
                                                                     <h5><?= htmlspecialchars($item['product_name']) ?></h5>
                                                                     <p>Quantity: <?= htmlspecialchars($item['quantity']) ?></p>
-                                                                    <p>Price: ₱<?= number_format($item['cost_price'], 2) ?></p>
+                                                                    <p>Price: ₱<?= number_format($item['sell_price'], 2) ?></p>
                                                                 </div>
                                                                 <div class="col-md-3 text-end">
-                                                                    <p>Subtotal: ₱<?= number_format($item['quantity'] * $item['cost_price'], 2) ?></p>
+                                                                    <p>Subtotal: ₱<?= number_format($item['quantity'] * $item['sell_price'], 2) ?></p>
                                                                 </div>
 
 
@@ -217,23 +232,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
 
                                                         <div class="row mt-4">
                                                             <div class="col-md-12 text-end">
-                                                                <h4>Total: ₱<?= number_format($order_data['header']['total_amount'], 2) ?></h4>
+                                                                <h4>Total:
+                                                                    <?php
+                                                                    if ($order_data['header']['order_status'] === 'cancelled') {
+                                                                        // Show total_amount from orders table
+                                                                        echo '₱' . number_format($order_data['header']['total_amount'], 2);
+                                                                    } else {
+                                                                        // Calculate total from order_items (sum of sell_price * quantity)
+                                                                        $total = 0;
+                                                                        foreach ($order_data['items'] as $item) {
+                                                                            $total += $item['sell_price'] * $item['quantity'];
+                                                                        }
+                                                                        echo '₱' . number_format($total, 2);
+                                                                    }
+                                                                    ?>
+                                                                </h4>
+
                                                                 <p class="text-muted">
                                                                     Payment Method: <?= htmlspecialchars($order_data['header']['payment_method']) ?>
                                                                 </p>
                                                             </div>
+
                                                         </div>
                                                     </div>
 
                                                     <div class="modal-footer">
                                                         <!-- order_status Management Buttons -->
 
-                                                        <form action="" method="POST">
+                                                        <!-- <form action="" method="POST">
                                                             <input type="hidden" name="order_id" value="<?= $order_id ?>">
                                                             <button type="submit" name="submit" value="process" class="btn btn-primary">
                                                                 <i class="fas fa-cogs"></i> Shipped
                                                             </button>
-                                                        </form>
+                                                        </form> -->
 
 
 

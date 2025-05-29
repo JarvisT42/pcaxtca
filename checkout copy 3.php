@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
 
     // Get current cart items
     $cartQuery = $conn->prepare("
-        SELECT sc.product_id, sc.qty, p.product_name, p.cost_price, p.sell_price, pos.on_sale_quantity 
+        SELECT sc.product_id, sc.qty, p.product_name, p.sale_price, pos.on_sale_quantity 
         FROM shopping_cart sc
         LEFT JOIN products p ON sc.product_id = p.id
         LEFT JOIN product_on_sales pos ON sc.product_id = pos.product_id
@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
         if ($item['on_sale_quantity'] === null || $item['on_sale_quantity'] < $item['qty']) {
             die("Product {$item['product_name']} is no longer available");
         }
-        $subtotal += $item['sell_price'] * $item['qty'];
+        $subtotal += $item['sale_price'] * $item['qty'];
         $validItems[] = $item;
     }
 
@@ -108,11 +108,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
         foreach ($validItems as $item) {
             // Insert order item
             $itemStmt = $conn->prepare("
-                INSERT INTO order_items (order_id, product_id, quantity, cost_price, sell_price)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO order_items (order_id, product_id, quantity, cost_price)
+                VALUES (?, ?, ?, ?)
             ");
-            $amount = $item['sell_price'] * $item['qty'];
-            $itemStmt->bind_param("iiidd", $orderId, $item['product_id'], $item['qty'], $item['cost_price'], $item['sell_price']);
+            $amount = $item['sale_price'] * $item['qty'];
+            $itemStmt->bind_param("iiid", $orderId, $item['product_id'], $item['qty'], $price);
             $itemStmt->execute();
             $itemStmt->close();
 
@@ -177,7 +177,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
     if ($user_id > 0) {
         // Get cart items with product details
         $cartQuery = $conn->prepare("
-            SELECT sc.*, p.product_name, p.sell_price, pos.on_sale_quantity 
+            SELECT sc.*, p.product_name, p.sale_price, pos.on_sale_quantity 
             FROM shopping_cart sc
             LEFT JOIN products p ON sc.product_id = p.id
             LEFT JOIN product_on_sales pos ON sc.product_id = pos.product_id
@@ -188,7 +188,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
         $cartResult = $cartQuery->get_result();
 
         while ($item = $cartResult->fetch_assoc()) {
-            $price = $item['sell_price'];
+            $price = $item['sale_price'];
             $quantity = $item['qty'];
             $itemTotal = $price * $quantity;
 

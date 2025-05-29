@@ -1,6 +1,13 @@
  <?php
     include '../connect/connection.php';
 
+    session_start();
+    if (!isset($_SESSION['user_logged_in'])) {
+        header("Location: ../sign-in.php");
+        exit;
+    }
+
+
     $product_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
     $user_id = $_SESSION['user_id'] ?? null;
     $product = [];
@@ -20,7 +27,7 @@
     // Fetch cart items from database if user is logged in
     if ($user_id) {
         $stmt = $conn->prepare("
-        SELECT p.id, p.product_name, p.sale_price, p.image_path, sc.qty
+        SELECT p.id, p.product_name, p.sell_price, p.image_path, sc.qty
         FROM shopping_cart sc
         INNER JOIN products p ON sc.product_id = p.id
         WHERE sc.user_id = ?
@@ -33,7 +40,7 @@
 
         // Calculate subtotal
         foreach ($cartItems as $item) {
-            $subtotal += $item['sale_price'] * $item['qty'];
+            $subtotal += $item['sell_price'] * $item['qty'];
         }
     }
 
@@ -50,7 +57,7 @@
          <!-- Classy Menu -->
          <nav class="classy-navbar" id="essenceNav">
              <!-- Logo -->
-             <a class="nav-brand" href="index">Pcaxtca Shop</a>
+             <a class="nav-brand" href="../shop.php">Pcaxtca Shop</a>
              <!-- Navbar Toggler -->
              <div class="classy-navbar-toggler">
                  <span class="navbarToggler"><span></span><span></span><span></span></span>
@@ -64,7 +71,7 @@
                  <!-- Nav Start -->
                  <div class="classynav">
                      <ul>
-                         <li><a href="shop">Shop</a>
+                         <li><a href="../shop">Shop</a>
 
                          </li>
 
@@ -202,7 +209,7 @@
                      <div class="single-cart-item">
                          <a href="#" class="product-image">
                              <!-- Main product image with fixed size -->
-                             <img src="<?= htmlspecialchars('admin/' . $item['image_path']) ?>"
+                             <img src="<?= htmlspecialchars('../admin/' . $item['image_path']) ?>"
                                  class="cart-thumb"
                                  alt="<?= htmlspecialchars($item['product_name']) ?>">
 
@@ -217,7 +224,7 @@
                                  <p class="size">Size: S</p>
                                  <p class="size">Quantity: <?= $item['qty'] ?></p>
                                  <p class="color">Color: Red</p>
-                                 <p class="price">$<?= number_format($item['sale_price'], 2) ?></p>
+                                 <p class="price">$<?= number_format($item['sell_price'], 2) ?></p>
                              </div>
                              <style>
                                  /* Add fixed size for product images */
@@ -260,7 +267,7 @@
                  <li><span>total:</span> <span>$<?= number_format($total, 2) ?></span></li>
              </ul>
              <div class="checkout-btn mt-100">
-                 <a href="checkout.php" class="btn essence-btn">check out</a>
+                 <a href="../checkout.php" class="btn essence-btn">check out</a>
              </div>
          </div>
      </div>

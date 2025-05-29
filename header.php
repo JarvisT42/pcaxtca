@@ -9,8 +9,17 @@
     $subtotal = 0;
 
     // Fetch product details if product_id is valid
+
+
     if ($product_id > 0) {
-        $stmt = $conn->prepare("SELECT * FROM products WHERE id = ?");
+        $stmt = $conn->prepare("
+    SELECT p.*,  pos.on_sale_quantity
+    FROM products p
+    LEFT JOIN product_on_sales pos ON p.id = pos.product_id
+    WHERE p.id = ?
+");
+
+
         $stmt->bind_param("i", $product_id);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -18,10 +27,12 @@
         $stmt->close();
     }
 
+
+
     // Fetch cart items from database if user is logged in
     if ($user_id) {
         $stmt = $conn->prepare("
-        SELECT p.id, p.product_name, p.sale_price, p.image_path, sc.qty
+        SELECT p.id, p.product_name, p.sell_price, p.image_path, sc.qty
         FROM shopping_cart sc
         INNER JOIN products p ON sc.product_id = p.id
         WHERE sc.user_id = ?
@@ -34,7 +45,7 @@
 
         // Calculate subtotal
         foreach ($cartItems as $item) {
-            $subtotal += $item['sale_price'] * $item['qty'];
+            $subtotal += $item['sell_price'] * $item['qty'];
         }
     }
 
@@ -197,7 +208,7 @@
                                  <p class="size">Size: S</p>
                                  <p class="size">Quantity: <?= $item['qty'] ?></p>
                                  <p class="color">Color: Red</p>
-                                 <p class="price">$<?= number_format($item['sale_price'], 2) ?></p>
+                                 <p class="price">$<?= number_format($item['sell_price'], 2) ?></p>
                              </div>
                              <style>
                                  /* Add fixed size for product images */

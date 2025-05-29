@@ -133,14 +133,14 @@ include 'head.php';
             }
 
             // Get product details
-            $productQuery = $conn->prepare("SELECT product_name, sale_price, image_path FROM products WHERE id = ?");
+            $productQuery = $conn->prepare("SELECT product_name, sell_price, image_path FROM products WHERE id = ?");
             $productQuery->bind_param("i", $product_id);
             $productQuery->execute();
             $productResult = $productQuery->get_result();
 
             if ($productResult->num_rows > 0) {
                 $product = $productResult->fetch_assoc();
-                $price = $product['sale_price'];
+                $price = $product['sell_price'];
                 $itemTotal = $price * $quantity;
                 $subtotal += $itemTotal;
 
@@ -168,7 +168,7 @@ include 'head.php';
 
     $conn->close();
     ?>
-    
+
     <section class="shop_grid_area section-padding-80">
         <div class="container">
             <?php if (!empty($cartItems)) : ?>

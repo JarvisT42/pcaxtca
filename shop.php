@@ -173,7 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
                                         <?php
-                                        $price_result = mysqli_query($conn, "SELECT MIN(sale_price) AS min_price, MAX(sale_price) AS max_price FROM products");
+                                        $price_result = mysqli_query($conn, "SELECT MIN(sell_price) AS min_price, MAX(sell_price) AS max_price FROM products");
                                         $price_range = mysqli_fetch_assoc($price_result);
                                         $min_price = isset($_GET['min_price']) ? (float)$_GET['min_price'] : (float)$price_range['min_price'];
                                         $max_price = isset($_GET['max_price']) ? (float)$_GET['max_price'] : (float)$price_range['max_price'];
@@ -356,7 +356,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         FROM products p
                                         INNER JOIN product_on_sales pos ON p.id = pos.product_id
                                         LEFT JOIN product_brands pb ON p.product_brand_id = pb.id
-                                        WHERE p.sale_price BETWEEN $min_price AND $max_price";
+                                        WHERE p.sell_price BETWEEN $min_price AND $max_price";
 
                             // Existing filter conditions
                             if (!empty($search_term)) {
@@ -373,10 +373,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             // NEW: Add Sorting
                             switch ($sort) {
                                 case 'price_asc':
-                                    $product_query .= " ORDER BY p.sale_price ASC";
+                                    $product_query .= " ORDER BY p.sell_price ASC";
                                     break;
                                 case 'price_desc':
-                                    $product_query .= " ORDER BY p.sale_price DESC";
+                                    $product_query .= " ORDER BY p.sell_price DESC";
                                     break;
                                 case 'name_asc':
                                     $product_query .= " ORDER BY p.product_name ASC";
@@ -447,7 +447,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                     <a href="single-product-details.php?id=<?= htmlspecialchars($product_id) ?>">
                                                         <h6><?= htmlspecialchars($product['product_name']) ?></h6>
                                                     </a>
-                                                    <p class="product-price">$<?= number_format($product['sale_price'], 2) ?></p>
+                                                    <p class="product-price">$<?= number_format($product['sell_price'], 2) ?></p>
 
                                                     <div class="hover-content">
                                                         <div class="add-to-cart-btn">

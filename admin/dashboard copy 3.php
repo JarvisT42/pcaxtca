@@ -1,43 +1,6 @@
-<?php
-include 'auth_admin.php';
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-include '../connect/connection.php';
+<?php include 'admin_header.php'; ?>
 
-// Fetch monthly sales data
-$sales_report = [];
-$query = "SELECT 
-            YEAR(Orders.order_date) AS year,
-            MONTH(Orders.order_date) AS month,
-            SUM(order_items.quantity * order_items.sell_price) AS revenue,
-            SUM(order_items.quantity * order_items.cost_price) AS cost,
-            SUM(order_items.quantity * (order_items.sell_price - order_items.cost_price)) AS profit,
-            COUNT(DISTINCT Orders.order_id) AS total_orders
-          FROM Orders
-          JOIN Order_items ON Orders.order_id = Order_items.order_id
-          WHERE Orders.order_status = 'completed'
-          GROUP BY YEAR(Orders.order_date), MONTH(Orders.order_date)
-          ORDER BY year DESC, month DESC";
-
-$result = mysqli_query($conn, $query);
-while ($row = mysqli_fetch_assoc($result)) {
-  $sales_report[] = $row;
-}
-
-// Prepare data for charts
-$chart_labels = [];
-$chart_revenue = [];
-$chart_profit = [];
-
-foreach ($sales_report as $report) {
-  $chart_labels[] = date('M Y', mktime(0, 0, 0, $report['month'], 1, $report['year']));
-  $chart_revenue[] = $report['revenue'];
-  $chart_profit[] = $report['profit'];
-}
-?>
-
-
+<?php include 'admin_header.php'; ?>
 
 <?php include 'admin_header.php'; ?>
 
@@ -51,79 +14,55 @@ foreach ($sales_report as $report) {
       <!-- Dashboard Cards -->
       <div class="row mb-4">
         <!-- Orders Card -->
-        <?php
-        $query = "SELECT COUNT(*) AS total_processing FROM orders WHERE order_status = 'processing'";
-        $result = mysqli_query($conn, $query);
-        $row = mysqli_fetch_assoc($result);
-        $totalProcessing = $row['total_processing'];
-        ?>
-
-
-
-        <div class="col-lg-4 col-sm-6 mb-xl-0 mb-4">
-          <a href="view_order.php" style="text-decoration: none; color: inherit;">
-            <div class="card" style="font-family: 'Inter', sans-serif;">
-              <div class="card-body p-3">
-                <div class="row">
-                  <div class="col-8">
-                    <div class="numbers">
-                      <p class="text-sm mb-0 text-capitalize font-weight-bold">Processing Orders</p>
-                      <h5 class="font-weight-bolder mb-0 d-flex align-items-center gap-2">
-                        <?= number_format($totalProcessing) ?>
-                        <i class="fas fa-spinner text-primary"></i>
-                      </h5>
-                    </div>
+        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-8">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Total Orders</p>
+                    <h5 class="font-weight-bolder mb-0">
+                      2,300
+                      <span class="text-success text-sm font-weight-bolder">+55%</span>
+                    </h5>
                   </div>
-                  <div class="col-4 text-end">
-                    <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
-                      <i class="ni ni-cart text-lg opacity-10" aria-hidden="true"></i>
-                    </div>
+                </div>
+                <div class="col-4 text-end">
+                  <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                    <i class="ni ni-cart text-lg opacity-10" aria-hidden="true"></i>
                   </div>
                 </div>
               </div>
             </div>
-          </a>
+          </div>
         </div>
 
-
-
-        <?php
-        $query = "SELECT COUNT(*) AS total_processing FROM order_items WHERE status = 'cancelled'";
-        $result = mysqli_query($conn, $query);
-        $row = mysqli_fetch_assoc($result);
-        $totalProcessing = $row['total_processing'];
-        ?>
-
         <!-- Cancellations Card -->
-        <div class="col-lg-4 col-sm-6 mb-xl-0 mb-4">
-          <a href="cancelled_order.php" style="text-decoration: none; color: inherit;">
-
-            <div class="card" style="font-family: 'Inter', sans-serif;">
-              <div class="card-body p-3">
-                <div class="row">
-                  <div class="col-8">
-                    <div class="numbers">
-                      <p class="text-sm mb-0 text-capitalize font-weight-bold">Cancellations</p>
-                      <h5 class="font-weight-bolder mb-0 d-flex align-items-center gap-2">
-                        <?= number_format($totalProcessing) ?>
-
-                        <i class="fas fa-times-circle text-danger"></i>
-                      </h5>
-                    </div>
+        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-8">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Cancellations</p>
+                    <h5 class="font-weight-bolder mb-0">
+                      86
+                      <span class="text-danger text-sm font-weight-bolder">+3%</span>
+                    </h5>
                   </div>
-                  <div class="col-4 text-end">
-                    <div class="icon icon-shape bg-gradient-danger shadow text-center border-radius-md">
-                      <i class="ni ni-fat-remove text-lg opacity-10" aria-hidden="true"></i>
-                    </div>
+                </div>
+                <div class="col-4 text-end">
+                  <div class="icon icon-shape bg-gradient-danger shadow text-center border-radius-md">
+                    <i class="ni ni-fat-remove text-lg opacity-10" aria-hidden="true"></i>
                   </div>
                 </div>
               </div>
             </div>
-          </a>
+          </div>
         </div>
 
         <!-- Revenue Card -->
-        <div class="col-lg-4 col-sm-6 mb-xl-0 mb-4">
+        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
           <div class="card">
             <div class="card-body p-3">
               <div class="row">
@@ -147,13 +86,7 @@ foreach ($sales_report as $report) {
         </div>
 
         <!-- Stock Warning Card -->
-
-      </div>
-
-      <!-- Additional Cards -->
-      <div class="row mb-4">
-        <!-- Customers Card -->
-        <div class="col-lg-4 col-sm-6 mb-xl-0 mb-4">
+        <div class="col-xl-3 col-sm-6">
           <div class="card">
             <div class="card-body p-3">
               <div class="row">
@@ -175,54 +108,45 @@ foreach ($sales_report as $report) {
             </div>
           </div>
         </div>
+      </div>
 
-        <?php
-
-        // Get total number of users
-        $sql = "SELECT COUNT(*) as total FROM users";
-        $result = $conn->query($sql);
-        $row = $result->fetch_assoc();
-        $total_users = $row['total'];
-        ?>
-
-        <div class="col-lg-4 col-sm-6 mb-xl-0 mb-4">
-          <a href="manage_user.php" style="text-decoration: none; color: inherit;">
-
-            <div class="card" style="font-family: 'Inter', sans-serif;">
-              <div class="card-body p-3">
-                <div class="row">
-                  <div class="col-8">
-                    <div class="numbers">
-                      <p class="text-sm mb-0 text-capitalize font-weight-bold">Users</p>
-                      <h5 class="font-weight-bolder mb-0 d-flex align-items-center gap-2">
-                        <?= number_format($total_users) ?>
-                        <i class="fas fa-users text-info"></i>
-                      </h5>
-                    </div>
+      <!-- Additional Cards -->
+      <div class="row mb-4">
+        <!-- Customers Card -->
+        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-8">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Customers</p>
+                    <h5 class="font-weight-bolder mb-0">
+                      3,462
+                      <span class="text-success text-sm font-weight-bolder">+12%</span>
+                    </h5>
                   </div>
-                  <div class="col-4 text-end">
-                    <div class="icon icon-shape bg-gradient-info shadow text-center border-radius-md">
-                      <i class="ni ni-single-02 text-lg opacity-10" aria-hidden="true"></i>
-                    </div>
+                </div>
+                <div class="col-4 text-end">
+                  <div class="icon icon-shape bg-gradient-info shadow text-center border-radius-md">
+                    <i class="ni ni-single-02 text-lg opacity-10" aria-hidden="true"></i>
                   </div>
                 </div>
               </div>
             </div>
-          </a>
+          </div>
         </div>
 
-
         <!-- Returns Card -->
-        <div class="col-lg-4 col-sm-6 mb-xl-0 mb-4">
-          <div class="card" style="font-family: 'Inter', sans-serif;">
+        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+          <div class="card">
             <div class="card-body p-3">
               <div class="row">
                 <div class="col-8">
                   <div class="numbers">
                     <p class="text-sm mb-0 text-capitalize font-weight-bold">Returns</p>
-                    <h5 class="font-weight-bolder mb-0 d-flex align-items-center gap-2">
+                    <h5 class="font-weight-bolder mb-0">
                       47
-                      <i class="fas fa-undo text-secondary"></i>
+                      <span class="text-danger text-sm font-weight-bolder">+8%</span>
                     </h5>
                   </div>
                 </div>
@@ -236,7 +160,53 @@ foreach ($sales_report as $report) {
           </div>
         </div>
 
+        <!-- Average Order Value -->
+        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-8">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Avg. Order Value</p>
+                    <h5 class="font-weight-bolder mb-0">
+                      $142.30
+                      <span class="text-success text-sm font-weight-bolder">+5.2%</span>
+                    </h5>
+                  </div>
+                </div>
+                <div class="col-4 text-end">
+                  <div class="icon icon-shape bg-gradient-dark shadow text-center border-radius-md">
+                    <i class="ni ni-chart-bar-32 text-lg opacity-10" aria-hidden="true"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
+        <!-- Conversion Rate -->
+        <div class="col-xl-3 col-sm-6">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-8">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Conversion Rate</p>
+                    <h5 class="font-weight-bolder mb-0">
+                      4.23%
+                      <span class="text-success text-sm font-weight-bolder">+1.2%</span>
+                    </h5>
+                  </div>
+                </div>
+                <div class="col-4 text-end">
+                  <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                    <i class="ni ni-chart-pie-35 text-lg opacity-10" aria-hidden="true"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Charts Section -->

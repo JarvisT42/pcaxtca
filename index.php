@@ -7,10 +7,20 @@
       <!-- ##### Header Area Start ##### -->
       <?php include 'header.php'; ?>
 
-      <!-- ##### Header Area End ##### -->
+      <?php if (isset($_GET['registered_already'])): ?>
+          <div id="signup-message" style="position: fixed; top: 80px; right: 20px; background-color: #ffc107; padding: 15px; border-radius: 5px; z-index: 9999;">
+              <strong>Notice:</strong> You are already signed up!
+          </div>
+          <script>
+              setTimeout(function() {
+                  const msg = document.getElementById('signup-message');
+                  if (msg) {
+                      msg.style.display = 'none';
+                  }
+              }, 5000); // 10 seconds = 10000 milliseconds
+          </script>
+      <?php endif; ?>
 
-
-      <!-- ##### Right Side Cart End ##### -->
 
       <!-- ##### Welcome Area Start ##### -->
       <section class="welcome_area bg-img background-overlay" style="background-image: url(img/bg-img/bgnew.png);">
