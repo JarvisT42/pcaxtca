@@ -23,12 +23,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['restockProduct'])) {
         $update = $conn->prepare("UPDATE product_qty SET qty = ? WHERE product_id = ?");
         $update->bind_param("ii", $new_quantity, $product_id);
 
-        // Execute the update and check if rows were affected
+        // Prepare and execute stock movement log
+        $movement_type = 'restock';
+        $qty_stmt2 = $conn->prepare("INSERT INTO stock_movements (product_id, qty, movement_type) VALUES (?, ?, ?)");
+        $qty_stmt2->bind_param("iis", $product_id, $quantity_to_add, $movement_type);
+        $qty_stmt2->execute();
+
         if ($update->execute()) {
             if ($update->affected_rows > 0) {
-                // If update is successful, redirect back to the same page or another page
                 header("Location: " . $_SERVER['PHP_SELF']);
-                exit();  // Don't forget to exit to prevent further code execution
+                exit();
             } else {
                 $error = "No changes were made. Please check the product ID or quantity.";
             }
@@ -36,8 +40,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['restockProduct'])) {
             $error = "Failed to update stock. Please try again.";
         }
 
-        // Close the prepared statement
+        // Close statements
         $update->close();
+        $qty_stmt2->close();
     } else {
         // If product_id or quantity is invalid
         $error = "Invalid product ID or quantity.";
@@ -98,20 +103,20 @@ include 'admin_header.php';
                                     <?php
 
                                     $sql = "
-    SELECT 
-        p.id, 
-        p.product_name, 
-        p.description, 
-        p.price, 
-        pq.qty, 
-        p.image_path,
-        COALESCE(SUM(s.on_sale_quantity), 0) AS total_on_sale_quantity
-    FROM products p
-    LEFT JOIN product_on_sales s ON p.id = s.product_id
-    LEFT JOIN product_qty pq ON p.id = pq.product_id
+                                        SELECT 
+                                            p.id, 
+                                            p.product_name, 
+                                            p.description, 
+                                            p.sell_price, 
+                                            pq.qty, 
+                                            p.image_path,
+                                            COALESCE(SUM(s.on_sale_quantity), 0) AS total_on_sale_quantity
+                                        FROM products p
+                                        LEFT JOIN product_on_sales s ON p.id = s.product_id
+                                        LEFT JOIN product_qty pq ON p.id = pq.product_id
 
-    GROUP BY p.id, p.product_name, p.description, p.price, pq.qty, p.image_path
-";
+                                        GROUP BY p.id, p.product_name, p.description, p.sell_price, pq.qty, p.image_path
+                                    ";
 
 
                                     $result = $conn->query($sql);
@@ -124,7 +129,7 @@ include 'admin_header.php';
                                             echo "<td>" . htmlspecialchars($row["id"]) . "</td>";
                                             echo "<td>" . htmlspecialchars($row["product_name"]) . "</td>";
                                             echo "<td>" . htmlspecialchars($row["description"]) . "</td>";
-                                            echo "<td>" . htmlspecialchars($row["price"]) . "</td>";
+                                            echo "<td>" . htmlspecialchars($row["sell_price"]) . "</td>";
 
                                             echo "<td>" . htmlspecialchars($row["qty"] ?? '') . "</td>";
                                             echo "<td>" . htmlspecialchars($row["total_on_sale_quantity"]) . "</td>"; // ✅ This line
@@ -133,15 +138,22 @@ include 'admin_header.php';
                                             echo "<td><img src='$imagePath' alt='Product Image' width='60' height='60' style='object-fit: cover;'></td>";
 
                                             echo "<td>
-                                            <button type='button' class='btn btn-success restock-btn' 
-                                                data-bs-toggle='modal' 
-                                                data-bs-target='#restockModal'
-                                                data-id='" . $row['id'] . "'
-                                                data-name='" . htmlspecialchars($row['product_name']) . "'
-                                                data-quantity='" . $row['qty'] . "'>
-                                                Restock
-                                            </button>
-                                        </td>";
+    <button type='button' class='btn btn-success restock-btn' 
+        data-bs-toggle='modal' 
+        data-bs-target='#restockModal'
+        data-id='" . $row['id'] . "'
+        data-name='" . htmlspecialchars($row['product_name']) . "'
+        data-quantity='" . $row['qty'] . "'>
+        Restock
+    </button>
+
+    <a href='view_product.php?id=" . $row['id'] . "' class='btn btn-primary view-btn'>
+        View
+    </a>
+</td>";
+
+
+
 
                                             echo "</tr>";
                                         }

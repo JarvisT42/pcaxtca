@@ -422,7 +422,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
 
                                 <?php if (!empty($cartItems)): ?>
                                     <?php foreach ($cartItems as $item): ?>
-                                        <li class="cart-item" data-available="<?= $item['available'] ? '1' : '0' ?>">
+                                        <li>
                                             <span>
                                                 <?= htmlspecialchars($item['name']) ?> (Qty: <?= $item['quantity'] ?>)
                                                 <?php if (!$item['available']): ?>
@@ -432,7 +432,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
                                             <span>$<?= number_format($item['total'], 2) ?></span>
                                         </li>
                                     <?php endforeach; ?>
-
                                 <?php else: ?>
                                     <li><span>Your cart is empty</span></li>
                                 <?php endif; ?>
@@ -557,29 +556,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
 
     <script>
         document.getElementById("order-form").addEventListener("submit", function(event) {
-            // 1. Check if cart is empty
-            const cartItems = document.querySelectorAll(".cart-item");
-            if (cartItems.length === 0) {
-                event.preventDefault();
-                alert("Your cart is empty.");
-                return;
-            }
-
-            // 2. Check for out-of-stock items
-            for (let item of cartItems) {
-                if (item.dataset.available === "0") {
-                    event.preventDefault();
-                    alert("One or more items in your cart are out of stock.");
-                    return;
-                }
-            }
-
-            // 3. Check if a payment method is selected
             var paymentMethod = document.querySelector('input[name="paymentMethod"]:checked');
+
             if (!paymentMethod) {
                 event.preventDefault();
                 alert("Please select a payment method.");
                 return;
+            }
+
+            // Check if cart is empty or has any out-of-stock item
+            const cartItems = document.querySelectorAll("li span");
+            let outOfStock = false;
+            let cartEmpty = true;
+
+            cartItems.forEach(span => {
+                const text = span.textContent;
+                if (text.includes("Out of Stock")) {
+                    outOfStock = true;
+                }
+                if (text.trim() !== "Your cart is empty") {
+                    cartEmpty = false;
+                }
+            });
+
+            if (cartEmpty) {
+                event.preventDefault();
+                alert("Your cart is empty.");
+            } else if (outOfStock) {
+                event.preventDefault();
+                alert("Some items in your cart are out of stock. Please remove them to proceed.");
             }
         });
     </script>

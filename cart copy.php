@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cart'])) {
 
     if ($stmt->affected_rows > 0) {
         // Successfully deleted
-        header("Location: " . $_SERVER['PHP_SELF']);
+        echo "Item removed from cart.";
     } else {
         // sc_id not found or error
         echo "Item could not be removed.";

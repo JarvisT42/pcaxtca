@@ -7,46 +7,45 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['sellProduct'])) {
     $quantity_to_sell = intval($_POST['quantity']);
     $available_quantity = intval($_POST['availableQuantity']); // from hidden input
 
- 
-        // Check if a record already exists for this product_id
-        $checkStmt = $conn->prepare("SELECT id, on_sale_quantity FROM product_on_sales WHERE product_id = ?");
-        $checkStmt->bind_param("i", $product_id);
-        $checkStmt->execute();
-        $checkStmt->store_result();
 
-        if ($checkStmt->num_rows == 0) {
-            // No existing record, proceed to insert
-            $insertStmt = $conn->prepare("INSERT INTO product_on_sales (product_id, on_sale_quantity, sale_date) VALUES (?, ?, NOW())");
-            $insertStmt->bind_param("ii", $product_id, $quantity_to_sell);
+    // Check if a record already exists for this product_id
+    $checkStmt = $conn->prepare("SELECT id, on_sale_quantity FROM product_on_sales WHERE product_id = ?");
+    $checkStmt->bind_param("i", $product_id);
+    $checkStmt->execute();
+    $checkStmt->store_result();
 
-            if ($insertStmt->execute()) {
-                header("Location: " . $_SERVER['PHP_SELF'] . "?sale_success=1");
-                exit();
-            } else {
-                $error = "Failed to record product sale.";
-            }
-            $insertStmt->close();
+    if ($checkStmt->num_rows == 0) {
+        // No existing record, proceed to insert
+        $insertStmt = $conn->prepare("INSERT INTO product_on_sales (product_id, on_sale_quantity, sale_date) VALUES (?, ?, NOW())");
+        $insertStmt->bind_param("ii", $product_id, $quantity_to_sell);
+
+        if ($insertStmt->execute()) {
+            header("Location: " . $_SERVER['PHP_SELF'] . "?sell_success=1");
+            exit();
         } else {
-            // Existing record found, proceed to update the on_sale_quantity
-            $checkStmt->bind_result($existing_id, $existing_quantity);
-            $checkStmt->fetch();
-
-            // Update the quantity in the database
-            $new_quantity = $existing_quantity + $quantity_to_sell;
-            $updateStmt = $conn->prepare("UPDATE product_on_sales SET on_sale_quantity = ? WHERE product_id = ?");
-            $updateStmt->bind_param("ii", $new_quantity, $product_id);
-
-            if ($updateStmt->execute()) {
-                header("Location: " . $_SERVER['PHP_SELF'] . "?sale_updated=1");
-                exit();
-            } else {
-                $error = "Failed to update product sale.";
-            }
-            $updateStmt->close();
+            $error = "Failed to record product sale.";
         }
+        $insertStmt->close();
+    } else {
+        // Existing record found, proceed to update the on_sale_quantity
+        $checkStmt->bind_result($existing_id, $existing_quantity);
+        $checkStmt->fetch();
 
-        $checkStmt->close();
-    
+        // Update the quantity in the database
+        $new_quantity = $existing_quantity + $quantity_to_sell;
+        $updateStmt = $conn->prepare("UPDATE product_on_sales SET on_sale_quantity = ? WHERE product_id = ?");
+        $updateStmt->bind_param("ii", $new_quantity, $product_id);
+
+        if ($updateStmt->execute()) {
+            header("Location: " . $_SERVER['PHP_SELF'] . "?sell_updated=1");
+            exit();
+        } else {
+            $error = "Failed to update product sale.";
+        }
+        $updateStmt->close();
+    }
+
+    $checkStmt->close();
 }
 
 
@@ -79,6 +78,27 @@ include 'admin_header.php';
         <div class="container-fluid py-4">
             <div class="row">
                 <div class="col-12">
+
+                    <?php if (isset($_GET['sell_success']) && $_GET['sell_success'] == 1): ?>
+                        <div class="alert alert-success alert-dismissible fade show auto-dismiss" role="alert">
+                            Product sell successfully!
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    <?php endif; ?>
+
+
+
+                    <?php if (isset($_GET['sell_updated']) && $_GET['sell_updated'] == 1): ?>
+                        <div class="alert alert-success alert-dismissible fade show auto-dismiss" role="alert">
+                            Product sell updated successfully!
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    <?php endif; ?>
+
+
+                    <script src="timeoutMessage.js"></script>
+
+
                     <div class="card mb-4">
                         <div class="card-header pb-0">
                             <h6>Add New Product</h6>
@@ -108,7 +128,7 @@ include 'admin_header.php';
                                             p.id, 
                                             p.product_name, 
                                             p.description, 
-                                            p.price, 
+                                            p.sell_price, 
                                             pq.qty, 
                                             p.image_path,
                                         s.on_sale_quantity
@@ -117,7 +137,7 @@ include 'admin_header.php';
                                         LEFT JOIN product_on_sales s ON p.id = s.product_id
                                         LEFT JOIN product_qty pq ON p.id = pq.product_id
 
-                                        GROUP BY p.id, p.product_name, p.description, p.price, pq.qty, p.image_path
+                                        GROUP BY p.id, p.product_name, p.description, p.sell_price, pq.qty, p.image_path
                                     ";
 
 
@@ -131,7 +151,7 @@ include 'admin_header.php';
                                             echo "<td>" . htmlspecialchars($row["id"]) . "</td>";
                                             echo "<td>" . htmlspecialchars($row["product_name"]) . "</td>";
                                             echo "<td>" . htmlspecialchars($row["description"]) . "</td>";
-                                            echo "<td>" . htmlspecialchars($row["price"]) . "</td>";
+                                            echo "<td>" . htmlspecialchars($row["sell_price"]) . "</td>";
 
                                             echo "<td>" . htmlspecialchars($row["qty"]) . "</td>";
                                             echo "<td>" . htmlspecialchars($row["on_sale_quantity"]) . "</td>"; // ✅ This line
@@ -146,7 +166,7 @@ include 'admin_header.php';
                                                             data-id='" . $row['id'] . "'
                                                             data-name='" . htmlspecialchars($row['product_name']) . "'
                                                             data-description='" . htmlspecialchars($row['description']) . "'
-                                                            data-price='" . $row['price'] . "'
+                                                            data-sell_price='" . $row['sell_price'] . "'
                                                             data-quantity='" . $row['qty'] . "'>
                                                             Edit
                                                         </button>
@@ -193,7 +213,7 @@ include 'admin_header.php';
                                                 </div>
                                                 <div class="mb-3">
                                                     <label for="editPrice" class="form-label">Price</label>
-                                                    <input type="number" class="form-control" id="editPrice" name="price" step="0.01" required>
+                                                    <input type="number" class="form-control" id="editPrice" name="sell_price" step="0.01" required>
                                                 </div>
                                                 <div class="mb-3">
                                                     <label for="editQuantity" class="form-label">Quantity</label>
@@ -261,7 +281,7 @@ include 'admin_header.php';
                     const id = button.getAttribute('data-id');
                     const name = button.getAttribute('data-name');
                     const description = button.getAttribute('data-description');
-                    const price = button.getAttribute('data-price');
+                    const sell_price = button.getAttribute('data-sell_price');
                     const quantity = button.getAttribute('data-quantity');
 
                     // Set modal fields
@@ -269,7 +289,7 @@ include 'admin_header.php';
                     document.getElementById('editProductName').value = name;
                     document.getElementById('productNameTitle').textContent = name;
                     document.getElementById('editDescription').value = description;
-                    document.getElementById('editPrice').value = price;
+                    document.getElementById('editsell_price').value = sell_price;
                     document.getElementById('editQuantity').value = quantity;
                 });
             });

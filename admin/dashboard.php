@@ -10,9 +10,9 @@ $sales_report = [];
 $query = "SELECT 
             YEAR(Orders.order_date) AS year,
             MONTH(Orders.order_date) AS month,
-            SUM(order_items.quantity * order_items.sell_price) AS revenue,
+            SUM(order_items.quantity * order_items.total_amount) AS revenue,
             SUM(order_items.quantity * order_items.cost_price) AS cost,
-            SUM(order_items.quantity * (order_items.sell_price - order_items.cost_price)) AS profit,
+            SUM(order_items.quantity * (order_items.total_amount - order_items.cost_price)) AS profit,
             COUNT(DISTINCT Orders.order_id) AS total_orders
           FROM Orders
           JOIN Order_items ON Orders.order_id = Order_items.order_id
@@ -123,6 +123,28 @@ foreach ($sales_report as $report) {
         </div>
 
         <!-- Revenue Card -->
+        <?php
+        $categories = [];
+        $revenues = [];
+        $totalRevenue = 0;
+
+        $sql = "SELECT pc.product_category, SUM(oi.total_amount) AS total_revenue
+        FROM order_items oi
+        JOIN products p ON oi.product_id = p.id
+        JOIN product_categorys pc ON p.product_category_id = pc.id
+        WHERE oi.status = 'completed'
+        GROUP BY pc.product_category
+        ORDER BY total_revenue DESC";
+
+        $result = $conn->query($sql);
+
+        while ($row = $result->fetch_assoc()) {
+          $categories[] = $row['product_category'];
+          $revenues[] = $row['total_revenue'];
+          $totalRevenue += $row['total_revenue'];
+        }
+        ?>
+
         <div class="col-lg-4 col-sm-6 mb-xl-0 mb-4">
           <div class="card">
             <div class="card-body p-3">
@@ -131,7 +153,7 @@ foreach ($sales_report as $report) {
                   <div class="numbers">
                     <p class="text-sm mb-0 text-capitalize font-weight-bold">Revenue</p>
                     <h5 class="font-weight-bolder mb-0">
-                      $53,000
+                      $<?= number_format($totalRevenue, 2) ?>
                       <span class="text-success text-sm font-weight-bolder">+15%</span>
                     </h5>
                   </div>
@@ -145,6 +167,7 @@ foreach ($sales_report as $report) {
             </div>
           </div>
         </div>
+
 
         <!-- Stock Warning Card -->
 
@@ -277,6 +300,28 @@ foreach ($sales_report as $report) {
       <!-- Additional Charts and Stock Timeline -->
       <div class="row">
         <!-- Revenue Bar Chart -->
+        <?php
+        $categories = [];
+        $revenues = [];
+
+        $sql = "SELECT pc.product_category, SUM(oi.total_amount) AS total_revenue
+        FROM order_items oi
+        JOIN products p ON oi.product_id = p.id
+        JOIN product_categorys pc ON p.product_category_id = pc.id
+        WHERE oi.status = 'completed'
+        GROUP BY pc.product_category
+        ORDER BY total_revenue DESC";
+
+        $result = $conn->query($sql);
+
+        while ($row = $result->fetch_assoc()) {
+          $categories[] = $row['product_category'];
+          $revenues[] = $row['total_revenue'];
+        }
+        ?>
+
+
+
         <div class="col-lg-8 mb-lg-0 mb-4">
           <div class="card z-index-2 h-100">
             <div class="card-header pb-0 pt-3 bg-transparent">
@@ -295,75 +340,56 @@ foreach ($sales_report as $report) {
         </div>
 
         <!-- Stock Timeline -->
+
+
+        <?php
+        // Adjust your query to join product_categorys to get the category name
+        $sql = "
+    SELECT p.product_name, pc.product_category, pq.qty
+    FROM product_qty pq
+    JOIN products p ON pq.product_id = p.id
+    JOIN product_categorys pc ON p.product_category_id = pc.id
+    WHERE pq.qty <= 20
+";
+
+        $result = $conn->query($sql);
+        $lowStockCount = $result->num_rows;
+        ?>
+
+
+
         <div class="col-lg-4">
           <div class="card h-100">
             <div class="card-header pb-0">
               <h6>Low Stock Products</h6>
               <p class="text-sm">
                 <i class="fa fa-exclamation-triangle text-warning" aria-hidden="true"></i>
-                <span class="font-weight-bold">12 items</span> need restocking
+                <span class="font-weight-bold"><?php echo $lowStockCount; ?> item<?php echo $lowStockCount !== 1 ? 's' : ''; ?></span> need restocking
               </p>
             </div>
             <div class="card-body p-3">
               <div class="timeline timeline-one-side">
-                <div class="timeline-block mb-3">
-                  <span class="timeline-step">
-                    <i class="ni ni-box-2 text-danger text-gradient"></i>
-                  </span>
-                  <div class="timeline-content">
-                    <h6 class="text-dark text-sm font-weight-bold mb-0">iPhone 13 Pro - Only 3 left</h6>
-                    <p class="text-secondary font-weight-bold text-xs mt-1 mb-0">Category: Electronics</p>
+                <?php while ($row = $result->fetch_assoc()) : ?>
+                  <div class="timeline-block mb-3">
+                    <span class="timeline-step">
+                      <i class="ni ni-box-2 text-danger text-gradient"></i>
+                    </span>
+                    <div class="timeline-content">
+                      <h6 class="text-dark text-sm font-weight-bold mb-0">
+                        <?php echo htmlspecialchars($row['product_name']); ?> - Only <?php echo $row['qty']; ?> left
+                      </h6>
+                      <p class="text-secondary font-weight-bold text-xs mt-1 mb-0">
+                        Category: <?php echo htmlspecialchars($row['product_category']); ?>
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div class="timeline-block mb-3">
-                  <span class="timeline-step">
-                    <i class="ni ni-box-2 text-danger text-gradient"></i>
-                  </span>
-                  <div class="timeline-content">
-                    <h6 class="text-dark text-sm font-weight-bold mb-0">Leather Jacket - Only 2 left</h6>
-                    <p class="text-secondary font-weight-bold text-xs mt-1 mb-0">Category: Clothing</p>
-                  </div>
-                </div>
-                <div class="timeline-block mb-3">
-                  <span class="timeline-step">
-                    <i class="ni ni-box-2 text-danger text-gradient"></i>
-                  </span>
-                  <div class="timeline-content">
-                    <h6 class="text-dark text-sm font-weight-bold mb-0">Blender - Only 4 left</h6>
-                    <p class="text-secondary font-weight-bold text-xs mt-1 mb-0">Category: Home & Kitchen</p>
-                  </div>
-                </div>
-                <div class="timeline-block mb-3">
-                  <span class="timeline-step">
-                    <i class="ni ni-box-2 text-danger text-gradient"></i>
-                  </span>
-                  <div class="timeline-content">
-                    <h6 class="text-dark text-sm font-weight-bold mb-0">Vitamin C Serum - Only 1 left</h6>
-                    <p class="text-secondary font-weight-bold text-xs mt-1 mb-0">Category: Beauty</p>
-                  </div>
-                </div>
-                <div class="timeline-block mb-3">
-                  <span class="timeline-step">
-                    <i class="ni ni-box-2 text-danger text-gradient"></i>
-                  </span>
-                  <div class="timeline-content">
-                    <h6 class="text-dark text-sm font-weight-bold mb-0">Running Shoes - Only 2 left</h6>
-                    <p class="text-secondary font-weight-bold text-xs mt-1 mb-0">Category: Sports</p>
-                  </div>
-                </div>
-                <div class="timeline-block">
-                  <span class="timeline-step">
-                    <i class="ni ni-box-2 text-danger text-gradient"></i>
-                  </span>
-                  <div class="timeline-content">
-                    <h6 class="text-dark text-sm font-weight-bold mb-0">Coffee Maker - Only 3 left</h6>
-                    <p class="text-secondary font-weight-bold text-xs mt-1 mb-0">Category: Appliances</p>
-                  </div>
-                </div>
+                <?php endwhile; ?>
               </div>
             </div>
           </div>
         </div>
+
+
       </div>
 
       <!-- More Charts -->
@@ -567,28 +593,19 @@ foreach ($sales_report as $report) {
       });
 
       // Bar Chart - Revenue by Category
+      const labels = <?= json_encode($categories) ?>;
+      const data = <?= json_encode($revenues) ?>;
+
       const barCtx = document.getElementById('bar-chart').getContext('2d');
       const barChart = new Chart(barCtx, {
         type: 'bar',
         data: {
-          labels: ['Electronics', 'Clothing', 'Home & Kitchen', 'Beauty', 'Sports'],
+          labels: labels,
           datasets: [{
-            label: 'Revenue ($)',
-            data: [125000, 82000, 78000, 56000, 45000],
-            backgroundColor: [
-              'rgba(94, 114, 228, 0.8)',
-              'rgba(23, 201, 100, 0.8)',
-              'rgba(255, 193, 7, 0.8)',
-              'rgba(233, 30, 99, 0.8)',
-              'rgba(33, 150, 243, 0.8)'
-            ],
-            borderColor: [
-              'rgba(94, 114, 228, 1)',
-              'rgba(23, 201, 100, 1)',
-              'rgba(255, 193, 7, 1)',
-              'rgba(233, 30, 99, 1)',
-              'rgba(33, 150, 243, 1)'
-            ],
+            label: 'Revenue (₱)',
+            data: data,
+            backgroundColor: labels.map(() => 'rgba(94, 114, 228, 0.8)'), // or generate colors dynamically
+            borderColor: labels.map(() => 'rgba(94, 114, 228, 1)'),
             borderWidth: 1
           }]
         },
@@ -605,18 +622,13 @@ foreach ($sales_report as $report) {
               beginAtZero: true,
               ticks: {
                 callback: function(value) {
-                  return '$' + value.toLocaleString();
+                  return '₱' + value.toLocaleString();
                 }
               }
             }
           }
         }
       });
-
-      // Mixed Chart - Monthly Performance
-
-
-      // Doughnut Chart - Regional Sales
 
 
       // Make charts responsive on window resize

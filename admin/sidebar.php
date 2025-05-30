@@ -5,6 +5,8 @@
     $isSalesOrdersDropdownActive = in_array($currentPage, ['view_order.php', 'process_deliver.php', 'shipped_delivered.php', 'cancelled_order.php']);
     $isBranchDropdownActive = in_array($currentPage, ['add_branch.php']);
     $isUserDropdownActive = in_array($currentPage, ['manage_user.php']);
+    $isSReportDropdownActive = in_array($currentPage, ['sales_report.php',  'inventory_report.php']);
+
     ?>
 
  <aside class="sidenav navbar navbar-vertical navbar-expand-xs  fixed-start  bg-gray-400" id="sidenav-main">
@@ -234,7 +236,10 @@
              </li>
              <!-- Optional Features Dropdown -->
              <li class="nav-item">
-                 <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#optionalFeaturesDropdown" role="button" aria-expanded="false" aria-controls="optionalFeaturesDropdown">
+
+
+
+                 <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#optionalFeaturesDropdown" role="button" aria-expanded="<?= $isSReportDropdownActive ? 'true' : 'false' ?>" aria-controls="optionalFeaturesDropdown">
                      <div class="d-flex align-items-center">
                          <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                              <!-- SVG icon here -->
@@ -249,12 +254,22 @@
                          <span class="nav-link-text ms-1">Optional Features</span>
                      </div>
                  </a>
-                 <div class="collapse" id="optionalFeaturesDropdown">
+                 <div class="collapse <?= $isSReportDropdownActive ? 'show' : '' ?>" id="optionalFeaturesDropdown">
+
                      <ul class="nav flex-column ms-4">
                          <li class="nav-item">
-                             <a class="nav-link" href="sample-table1.php">Sales Report</a>
+                             <a class="nav-link <?= $currentPage == 'sales_report.php' ? 'active' : '' ?>" href="sales_report.php">Sales Report</a>
+
                          </li>
+
+
                          <li class="nav-item">
+                             <a class="nav-link <?= $currentPage == 'inventory_report.php' ? 'active' : '' ?>" href="inventory_report.php">Inventory Report</a>
+
+                         </li>
+
+
+                         <!-- <li class="nav-item">
                              <a class="nav-link" href="sample-table2.php">Discounts / Coupons</a>
                          </li>
                          <li class="nav-item">
@@ -262,7 +277,7 @@
                          </li>
                          <li class="nav-item">
                              <a class="nav-link" href="sample-table2.php">Notifications</a>
-                         </li>
+                         </li> -->
                      </ul>
                  </div>
              </li>

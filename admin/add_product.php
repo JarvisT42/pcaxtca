@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
         // Insert into products table
         $stmt = $conn->prepare("INSERT INTO products 
         (product_name, product_category_id, product_brand_id, description, 
-         price, sell_price, image_path, image_path2, image_path3)     
+         cost_price, sell_price, image_path, image_path2, image_path3)     
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
         $stmt->execute([
@@ -72,15 +72,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
             $image_path3
         ]);
 
-        // ✅ Correct way to get the last inserted ID with PDO
         $product_id = $conn->insert_id;
 
         // Insert into product_qty table
         $qty_stmt = $conn->prepare("INSERT INTO product_qty (product_id, qty) VALUES (?, ?)");
         $qty_stmt->execute([$product_id, $quantity]);
 
+        $movement_type = 'initial_stock'; // Assuming this is an addition to stock
+
+        $qty_stmt2 = $conn->prepare("INSERT INTO stock_movements (product_id, qty, movement_type) VALUES (?, ?, ?)");
+        $qty_stmt2->execute([$product_id, $quantity, $movement_type]);
+
         // Redirect
-        header("Location: " . $_SERVER['PHP_SELF']);
+        header("Location: " . $_SERVER['PHP_SELF'] . "?added_success=1");
+
+
         exit();
     } catch (PDOException $e) {
         $error = "Database error: " . $e->getMessage();
@@ -103,6 +109,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
         <div class="container-fluid py-4">
             <div class="row">
                 <div class="col-12">
+                    <?php if (isset($_GET['added_success']) && $_GET['added_success'] == 1): ?>
+                        <div class="alert alert-success alert-dismissible fade show auto-dismiss" role="alert">
+                            Product branch added successfully!
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    <?php endif; ?>
+
+              
+
+
+
+
+                    <script src="timeoutMessage.js"></script>
+
                     <div class="card mb-4">
                         <div class="card-header pb-0">
                             <h6>Add New Product</h6>
@@ -165,13 +185,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="price" class="form-label">Product Price (₱)</label>
+                                    <label for="price" class="form-label">Cost Price (₱)</label>
                                     <input type="number" name="price" id="price" class="form-control"
                                         step="0.01" min="0.01" required>
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="sell_price" class="form-label">Product Sale Price (₱)</label>
+                                    <label for="sell_price" class="form-label">Sell Price (₱)</label>
                                     <input type="number" name="sell_price" id="sell_price" class="form-control" step="0.01" min="0.01">
                                 </div>
                                 <div class="alert alert-warning" role="alert">

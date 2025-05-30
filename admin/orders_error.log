@@ -1,0 +1,5 @@
+[30-May-2025 05:41:57 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'item_id' in 'field list' in C:\xampp\htdocs\pcaxtca\admin\fetch_table_data.php:24
+Stack trace:
+#0 C:\xampp\htdocs\pcaxtca\admin\fetch_table_data.php(24): mysqli->prepare('SELECT item_id,...')
+#1 {main}
+  thrown in C:\xampp\htdocs\pcaxtca\admin\fetch_table_data.php on line 24

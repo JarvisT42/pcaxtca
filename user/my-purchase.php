@@ -5,28 +5,42 @@ include '../connect/connection.php';
 
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cancel'])) {
-
     $item_id = $_POST['item_id'];
-
-
-
+    $order_id = $_POST['order_id'];
     $new_status = 'cancelled';
 
-    $stmt = $conn->prepare("UPDATE order_items SET status = ? WHERE item_id = ?");
-    $stmt->bind_param("si", $new_status, $item_id);
+    // Count how many items are in this order
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM order_items WHERE order_id = ?");
+    $stmt->bind_param("i", $order_id);
+    $stmt->execute();
+    $stmt->bind_result($item_count);
+    $stmt->fetch();
+    $stmt->close();
 
-    if ($stmt->execute()) {
+    // Update the individual item status
+    $stmt = $conn->prepare("UPDATE order_items SET status = ? WHERE item_id = ?, cancelled_at = NOW()");
+    $stmt->bind_param("si", $new_status, $item_id);
+    $success = $stmt->execute();
+    $stmt->close();
+
+    if ($success) {
+        // If there's only one item, update the main orders table
+        if ($item_count == 1) {
+            $stmt = $conn->prepare("UPDATE orders SET order_status = ? WHERE order_id = ?");
+            $stmt->bind_param("si", $new_status, $order_id);
+            $stmt->execute();
+            $stmt->close();
+        }
+
         $_SESSION['success'] = "Order status updated successfully!";
     } else {
         $_SESSION['error'] = "Error updating status: " . $conn->error;
     }
 
-    $stmt->close();
-
-
-    header("Location: my-purchase.php"); // Redirect back to orders page
+    header("Location: my-purchase.php");
     exit();
 }
+
 
 
 
@@ -189,7 +203,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cancel'])) {
                                     'product_name' => $row['product_name'],
                                     'image_path' => $row['image_path'],
                                     'quantity' => $row['quantity'],
-                                    'sell_price' => $row['sell_price']
+                                    'total_amount' => $row['total_amount']
                                 ];
                             }
                             ?>
@@ -254,13 +268,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cancel'])) {
                                                                 <div class="col-md-6">
                                                                     <h5><?= $item['product_name'] ?></h5>
                                                                     <p>Quantity: <?= $item['quantity'] ?></p>
-                                                                    <p>Price: ₱<?= number_format($item['sell_price'], 2) ?></p>
+                                                                    <p>Price: ₱<?= number_format($item['total_amount'], 2) ?></p>
                                                                 </div>
                                                                 <div class="col-md-3 text-right">
-                                                                    <p>Subtotal: ₱<?= number_format($item['quantity'] * $item['sell_price'], 2) ?></p>
+                                                                    <p>Subtotal: ₱<?= number_format($item['quantity'] * $item['total_amount'], 2) ?></p>
                                                                     <form action="" method="POST" class="mt-2">
                                                                         <!-- <input type="hidden" name="order_id" value="<?= $order_id ?>"> -->
                                                                         <input type="hidden" name="item_id" value="<?= $item['item_id'] ?>">
+                                                                        <input type="hidden" name="order_id" value="<?= $order_id ?>">
+
                                                                         <button type="submit" name="cancel" class="btn btn-sm btn-danger">
                                                                             <i class="fas fa-times"></i> Cancel Item
                                                                         </button>
@@ -304,7 +320,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cancel'])) {
                                     products.product_name,
                                     products.image_path,
                                      order_items.item_id,
-                                     order_items.sell_price
+                                     order_items.total_amount
                                 FROM orders
                                 INNER JOIN order_items ON orders.order_id = order_items.order_id
                                 INNER JOIN products ON order_items.product_id = products.id
@@ -340,14 +356,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cancel'])) {
 
                                 $grouped_orders[$order_id]['items'][] = [
                                     'item_id' => $row['item_id'], // Add item_id here
-                                    'sell_price' => $row['sell_price'], // Add item_id here
+                                    'total_amount' => $row['total_amount'], // Add item_id here
 
 
 
                                     'product_name' => $row['product_name'],
                                     'image_path' => $row['image_path'],
                                     'quantity' => $row['quantity'],
-                                    'sell_price' => $row['sell_price']
+                                    'total_amount' => $row['total_amount']
                                 ];
                             }
                             ?>
@@ -414,10 +430,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cancel'])) {
                                                                 <div class="col-md-6">
                                                                     <h5><?= $item['product_name'] ?></h5>
                                                                     <p>Quantity: <?= $item['quantity'] ?></p>
-                                                                    <p>Price: ₱<?= number_format($item['sell_price'] / 2, 2) ?></p>
+                                                                    <p>Price: ₱<?= number_format($item['total_amount'] / 2, 2) ?></p>
                                                                 </div>
                                                                 <div class="col-md-3 text-right">
-                                                                    <p>Subtotal: ₱<?= number_format($item['quantity'] * $item['sell_price'], 2) ?></p>
+                                                                    <p>Subtotal: ₱<?= number_format($item['quantity'] * $item['total_amount'], 2) ?></p>
 
                                                                 </div>
                                                             </div>
@@ -428,7 +444,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cancel'])) {
                                                                 <?php
                                                                 $totalAmount = 0;
                                                                 foreach ($order_data['items'] as $item) {
-                                                                    $totalAmount += $item['quantity'] * $item['sell_price'];
+                                                                    $totalAmount += $item['quantity'] * $item['total_amount'];
                                                                 }
                                                                 ?>
                                                                 <h4>Total: ₱<?= number_format($totalAmount, 2) ?></h4>
@@ -486,7 +502,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cancel'])) {
                                         'product_name' => $row['product_name'],
                                         'image_path' => $row['image_path'],
                                         'quantity' => $row['quantity'],
-                                        'sell_price' => $row['sell_price']
+                                        'total_amount' => $row['total_amount']
                                     ];
                                 }
                                 ?>
@@ -572,7 +588,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cancel'])) {
                                         products.product_name,
                                         products.image_path,
                                         order_items.quantity,
-                                        order_items.sell_price,
+                                        order_items.total_amount,
                                         order_items.status,
                                         order_items.cancelled_at
                                     FROM order_items
@@ -621,7 +637,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cancel'])) {
                                                     </div>
                                                     <div class="col-md-4 text-end">
                                                         <div class="mb-3">
-                                                            <h5>Total: ₱<?= number_format($item['sell_price'], 2) ?></h5>
+                                                            <h5>Total: ₱<?= number_format($item['total_amount'], 2) ?></h5>
                                                         </div>
                                                         <div class="btn-group">
                                                             <button class="btn essence-btn btn-sm">View Details</button>
